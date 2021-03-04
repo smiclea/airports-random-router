@@ -6,7 +6,7 @@ import turfDistance from '@turf/distance'
 import turfAlong from '@turf/along'
 import turfBearing from '@turf/bearing'
 
-import { RouteItem, RunwayDb } from '../../../models/Airport'
+import { AirportDb, RunwayDb } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
 
 const GlobalStyle = createGlobalStyle`
@@ -32,7 +32,7 @@ const GlobalStyle = createGlobalStyle`
       background: #f50057;
       cursor: default;
     }
-    &.map-marker-secondary .mapboxgl-popup-content {
+    &.map-marker-end .mapboxgl-popup-content {
       background: rgb(255, 152, 0);
       cursor: default;
     }
@@ -100,7 +100,7 @@ const MapContainer = styled.div`
   height: 100%;
 `
 type Props = {
-  routeItems: RouteItem[]
+  routeItems: AirportDb[]
   runways: RunwayDb[]
   onLoad: () => void
   onRequestRunways: (airportIdent: string) => void
@@ -135,7 +135,7 @@ const Map = ({
   })
 
   const showMarkersOnMap = (
-    markersToShowOnMap: RouteItem[],
+    markersToShowOnMap: AirportDb[],
     markersRef: React.MutableRefObject<mapboxgl.Popup[]>,
   ) => {
     if (!map.current) {
@@ -154,8 +154,14 @@ const Map = ({
 
     markersToShowOnMap.forEach((routeItem, i) => {
       const bulletString = getAirportSize(routeItem.longest_runway_length)
+      const markerClassName = i === 0 ? ' map-marker-start' : i === markersToShowOnMap.length - 1 ? ' map-marker-end' : ''
+      const countryTemplate = routeItem.countryCode ? `
+        <div class="map-marker-country">
+          <img width="16px" height="16px" src="/flags/${routeItem.countryCode}.svg" title="${routeItem.countryName}" />${routeItem.countryCode}
+        </div>
+      ` : ''
       const marker = new mapboxgl.Popup({
-        className: `map-marker${i === 0 ? ' map-marker-start' : ''}`,
+        className: `map-marker${markerClassName}`,
         closeOnClick: false,
         closeButton: false,
         anchor: 'center',
@@ -168,9 +174,7 @@ const Map = ({
             <div class="map-marker-ident">${routeItem.ident}</div>
             <div class="map-marker-size">${bulletString || '<span style="opacity: 0;">E</span>'}</div>
           <div>
-          <div class="map-marker-country">
-            <img width="16px" height="16px" src="/flags/${routeItem.countryCode}.svg" title="${routeItem.countryName}" />${routeItem.countryCode}
-          </div>
+          ${countryTemplate}
           `,
         )
         .addTo(map.current!)

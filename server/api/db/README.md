@@ -40,4 +40,6 @@
 
 * `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection runways --type csv --headerline --file runways.csv`
 
-* indexes: airport_id
+* indexes: airport_id, runway_id
+
+13. Run `yarn transform-airports`

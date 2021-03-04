@@ -1,4 +1,5 @@
 import { MongoClient, Db } from 'mongodb'
+import pointInPolygon from '@turf/boolean-point-in-polygon'
 import RegExpUtil from '../../../common/utils/RegExpUtil'
 import { AirportDb, RunwayDb } from '../../../models/Airport'
 import { Country } from '../../../models/Country'
@@ -12,7 +13,7 @@ class DbManager {
   private mongoDb!: Db
 
   private get airportsCollection() {
-    return this.mongoDb.collection<AirportDb>('airports')
+    return this.mongoDb.collection<AirportDb>('airports_geojson')
   }
 
   private get runwaysCollection() {
@@ -27,6 +28,10 @@ class DbManager {
       useUnifiedTopology: true,
     })
     this.mongoDb = this.client.db(DB_NAME)
+  }
+
+  async disconnect() {
+    await this.client.close()
   }
 
   async getAirportByIdent(ident: string): Promise<AirportDb | null> {
@@ -45,7 +50,7 @@ class DbManager {
     return this.runwaysCollection.findOne({ runway_id: id })
   }
 
-  async getCountryByCoords(coordinates: [number, number]): Promise<Country | null> {
+  private async getCountryByCoords(coordinates: [number, number]): Promise<Country | null> {
     return (await this.mongoDb.collection<any>('countries_geojson').findOne({
       geometry: {
         $geoIntersects: {
@@ -59,24 +64,50 @@ class DbManager {
   }
 
   async transformAiportsToGeoJson() {
-    const airports = await this.airportsCollection.find({ latx: { $exists: true } }).toArray()
-    if (airports.length === 0) {
-      console.log('No non-geojson airport found')
-      return
-    }
-    // @TODO Load country info and bypass country_geojson collections throughout the app
-    const airportsGeoJson: AirportDb[] = airports.map((airport: any) => {
-      const { lonx, laty, ...otherAiportProps } = airport
+    console.log('Loading airports and countries collection...')
+    const [airportsSimple, countriesGeojson] = await Promise.all([
+      this.mongoDb.collection('airports').find({}).toArray(),
+      this.mongoDb.collection<any>('countries_geojson').find({}).toArray(),
+    ])
+
+    const CHECK_PROGESS_EVERY = 5 * 1000
+    let lastCheck = new Date().getTime()
+    const airportsGeoJson: AirportDb[] = airportsSimple.map((airportSimple, index) => {
+      const { lonx, laty, ...otherAirportProps } = airportSimple
+      let country: Country | null = null
+      for (let i = 0; i < countriesGeojson.length; i += 1) {
+        if (pointInPolygon([lonx, laty], countriesGeojson[i].geometry)) {
+          country = countriesGeojson[i].properties
+          break
+        }
+      }
+      if (new Date().getTime() - lastCheck >= CHECK_PROGESS_EVERY) {
+        console.log(`Progress: ${((index / airportsSimple.length) * 100).toFixed(2)}% (${index} / ${airportsSimple.length})`)
+        lastCheck = new Date().getTime()
+      }
+
       return {
-        ...otherAiportProps,
+        ...otherAirportProps,
         geometry: {
           type: 'Point',
           coordinates: [lonx, laty],
         },
+        countryCode: country?.ISO_A2 || country?.ADMIN || null,
+        countryName: country?.ADMIN || 'Unknown',
       }
     })
+
+    console.log('Droping collection...')
     await this.airportsCollection.drop()
+    console.log('Inserting the airports GeoJSON...')
     await this.airportsCollection.insertMany(airportsGeoJson)
+    console.log('Creating indexes...')
+    await Promise.all([
+      this.airportsCollection.createIndex({ ident: 1 }),
+      this.airportsCollection.createIndex({ airport_id: 1 }),
+      this.airportsCollection.createIndex({ longest_runway_length: 1 }),
+      this.airportsCollection.createIndex({ geometry: '2dsphere' }),
+    ])
   }
 
   async searchAround(airport: AirportDb, minDistance: number, maxDistance: number, minRunwayLength: number) {

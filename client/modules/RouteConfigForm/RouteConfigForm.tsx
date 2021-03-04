@@ -16,6 +16,9 @@ const FieldRow = styled.div`
 `
 const FieldInputWrapper = styled.div`
   width: 100%;
+  label {
+    width: 160px;
+  }
 `
 
 const LEG_DISTANCES = [
@@ -78,12 +81,12 @@ const BEARINGS = [
     value: 45,
   },
   {
-    label: '65deg',
-    value: 65,
-  },
-  {
     label: '75deg',
     value: 75,
+  },
+  {
+    label: '90deg',
+    value: 90,
   },
 ]
 
@@ -135,14 +138,14 @@ const RouteConfigForm = ({
         <FieldInputWrapper>
           <TextField
             fullWidth
-            label="Departure Airport Ident."
+            label="Departure Airport"
             value={startAirport}
             onChange={e => { setStartAirport(e.currentTarget.value) }}
           />
         </FieldInputWrapper>
         <FieldInputWrapper>
           <TextField
-            label="Destination Airport Ident."
+            label="Destination Airport"
             fullWidth
             value={endAirport}
             onChange={e => { setEndAirport(e.currentTarget.value) }}
@@ -168,7 +171,7 @@ const RouteConfigForm = ({
         <FieldInputWrapper>
           <TextField
             select
-            label="Airport Runway Length"
+            label="Runway Length"
             value={airportSize}
             onChange={e => { setAirportSize(Number(e.target.value)) }}
             fullWidth
@@ -208,7 +211,7 @@ const RouteConfigForm = ({
             variant="contained"
             onClick={handleGenerateClick}
             disabled={!startAirport || !endAirport}
-          >Generate Route
+          >Generate
           </Button>
         </FieldInputWrapper>
         <FieldInputWrapper style={{ textAlign: 'right' }}>

@@ -57,7 +57,7 @@ const HomeContainer = () => {
 
   return (
     <Wrapper>
-      <Column>
+      <Column style={{ width: '260px' }}>
         <RouteConfigForm
           config={airportStore.routeConfig}
           onGenerateClick={handleGenerateRoute}

@@ -8,6 +8,8 @@ export type AirportDb = {
   }
   altitude: number
   longest_runway_length: number
+  countryCode: string | null
+  countryName: string
 }
 
 export type GenerateRouteRequestBody = {
@@ -31,9 +33,4 @@ export type RunwayDb = {
   primary_laty: number
   secondary_lonx: number
   secondary_laty: number
-}
-
-export type RouteItem = AirportDb & {
-  countryCode: string | null
-  countryName: string | null
 }

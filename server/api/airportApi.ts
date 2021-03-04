@@ -64,17 +64,6 @@ const airportApi = (router: Router) => {
       const runways = await db.getRunways(airport.airport_id)
       res.json(runways)
     })
-
-  router.route('/airports/transform-to-geojson')
-    .post(async (_, res) => {
-      const startTime = new Date().getTime()
-      try {
-        await db.transformAiportsToGeoJson()
-      } catch (err) {
-        handleError('`transformAiportsToGeoJson` error', err, res)
-      }
-      res.json({ success: `Done in ${((new Date().getTime() - startTime) / 1000).toFixed(2)}s` })
-    })
 }
 
 export default airportApi

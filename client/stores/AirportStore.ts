@@ -1,5 +1,5 @@
 import { action, observable, runInAction } from 'mobx'
-import { GenerateRouteRequestBody, RouteItem, RunwayDb } from '../../models/Airport'
+import { AirportDb, GenerateRouteRequestBody, RunwayDb } from '../../models/Airport'
 import apiCaller from '../utils/ApiCaller'
 
 export const getAirportSize = (length: number): string => {
@@ -13,7 +13,7 @@ export const getAirportSize = (length: number): string => {
 }
 class AirportStore {
   @observable
-  routeItems: RouteItem[] = []
+  routeItems: AirportDb[] = []
 
   @observable
   runways: RunwayDb[] = []
@@ -69,7 +69,7 @@ class AirportStore {
     this.runways = []
 
     try {
-      const routeItems: RouteItem[] = await apiCaller.send({
+      const routeItems: AirportDb[] = await apiCaller.send({
         url: '/api/airports/generate-random-route',
         method: 'POST',
         data: {

@@ -19,6 +19,12 @@ export default async () => {
   console.log('Starting ...')
   await db.connect()
 
+  if (process.argv[2] === 'transform-airports') {
+    await db.transformAiportsToGeoJson()
+    await db.disconnect()
+    return
+  }
+
   app.listen(env.PORT, () => {
     console.log('Node API listening', `http://localhost:${env.PORT}`)
   })

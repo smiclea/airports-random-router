@@ -1,7 +1,9 @@
 import turfDistance from '@turf/distance'
 import turfBearing from '@turf/bearing'
-import { AirportDb, RouteItem } from '../../../models/Airport'
+import { AirportDb } from '../../../models/Airport'
 import db from '../db'
+
+const ROUTE_LIMIT = 49
 
 export default async (config: {
   fromAirport: AirportDb
@@ -11,24 +13,13 @@ export default async (config: {
   runwayMinLength: number,
   angle: number,
 }) => {
-  const currentRoute: RouteItem[] = []
-
-  const airportToRouteItem = async (airport: AirportDb) => {
-    const country = await db.getCountryByCoords(airport.geometry.coordinates)
-    const routeItem: RouteItem = {
-      ...airport,
-      countryCode: country?.ISO_A2 || country?.ADMIN || null,
-      countryName: country?.ADMIN || 'Unknown',
-    }
-
-    return routeItem
-  }
+  const currentRoute: AirportDb[] = []
 
   const findRoute = async (foundRoute: AirportDb) => {
-    currentRoute.push(await airportToRouteItem(foundRoute))
+    currentRoute.push(foundRoute)
     const distanceToEnd = turfDistance(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates) * 0.539957
-    if (distanceToEnd <= config.maxDistance || currentRoute.length === 9) {
-      currentRoute.push(await airportToRouteItem(config.toAirport))
+    if (distanceToEnd <= config.maxDistance || currentRoute.length === ROUTE_LIMIT) {
+      currentRoute.push(config.toAirport)
       return
     }
 
@@ -47,7 +38,7 @@ export default async (config: {
     })
 
     if (!searchAroundAirports.length) {
-      currentRoute.push(await airportToRouteItem(config.toAirport))
+      currentRoute.push(config.toAirport)
       return
     }
     const randomAirport = searchAroundAirports[Math.floor(Math.random() * searchAroundAirports.length)]

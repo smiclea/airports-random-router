@@ -1107,6 +1107,14 @@
     "@turf/helpers" "^6.3.0"
     "@turf/invariant" "^6.3.0"
 
+"@turf/boolean-point-in-polygon@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-point-in-polygon/-/boolean-point-in-polygon-6.3.0.tgz#784952a36c64119e90fbe94650245da62ecd8fc2"
+  integrity sha512-NqFSsoE6OwhDK19IllDQRhEQEkF7UVEOlqH9vgS1fGg4T6NcyKvACJs05c9457tL7QSbV9ZS53f2qiLneFL+qg==
+  dependencies:
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
+
 "@turf/destination@^6.2.0":
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/@turf/destination/-/destination-6.2.0.tgz#bbc6f0438431a6076b27392711ae04e56951e561"

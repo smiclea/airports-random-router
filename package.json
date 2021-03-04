@@ -8,6 +8,7 @@
     "client-dev": "webpack-dev-server --config webpack.dev.js",
     "server-dev": "nodemon -e ts,js --ignore client ./server/index",
     "server-debug": "node --inspect ./server/index",
+    "transform-airports": "node ./server/index transform-airports",
     "tsc": "npx tsc --skipLibCheck",
     "eslint": "npx eslint -c .eslintrc \"server/**\" \"client/**\" \"common/**\""
   },
@@ -27,6 +28,7 @@
     "@material-ui/icons": "^4.5.1",
     "@turf/along": "^6.2.0",
     "@turf/bearing": "^6.3.0",
+    "@turf/boolean-point-in-polygon": "^6.3.0",
     "@turf/destination": "^6.3.0",
     "@turf/distance": "^6.3.0",
     "@turf/length": "^6.2.0",
