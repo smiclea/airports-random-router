@@ -4,6 +4,41 @@ import handleError from './helpers/handleError'
 import findRoute from './helpers/findRoute'
 
 const airportApi = (router: Router) => {
+  router.route('/airports')
+    .get(async (req, res) => {
+      const { codes } = req.query
+      if (!codes) {
+        res.status(500).json({ error: '\'codes\' parameter missing!' })
+        return
+      }
+
+      const notFoundAirports: string[] = []
+
+      const foundAirports = (await Promise.all(String(codes).split(',').map(async code => {
+        const airport = await db.getAirportByIdent(code.toUpperCase())
+        if (!airport) {
+          notFoundAirports.push(code)
+        }
+        return airport
+      }))).filter(Boolean)
+      res.json({
+        foundAirports,
+        notFoundAirports,
+      })
+    })
+
+  router.route('/airports/:ident')
+    .get(async (req, res) => {
+      const { ident } = req.params
+      const airport = await db.getAirportByIdent(ident)
+      if (!airport) {
+        res.status(404).json({ error: `Airport with ident '${ident}' not found` })
+        return
+      }
+      const runways = await db.getRunways(airport.airport_id)
+      res.json(runways)
+    })
+
   router.route('/airports/generate-random-route')
     .post(async (req, res) => {
       const {
@@ -51,18 +86,6 @@ const airportApi = (router: Router) => {
       } catch (err) {
         handleError('Route Generator error', err, res)
       }
-    })
-
-  router.route('/airports/:ident')
-    .get(async (req, res) => {
-      const { ident } = req.params
-      const airport = await db.getAirportByIdent(ident)
-      if (!airport) {
-        res.status(404).json({ error: `Airport with ident '${ident}' not found` })
-        return
-      }
-      const runways = await db.getRunways(airport.airport_id)
-      res.json(runways)
     })
 }
 

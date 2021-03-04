@@ -159,6 +159,35 @@ class AirportStore {
     this.routeItems = []
     this.saveRouteItems()
   }
+
+  @action
+  async editRoute(codes: string[]) {
+    this.loading = true
+    this.loadingError = null
+
+    try {
+      const response: {
+        foundAirports: AirportDb[],
+        notFoundAirports: string[],
+      } = await apiCaller.send({
+        url: `/api/airports?codes=${codes.join(',')}`,
+      })
+      runInAction(() => {
+        this.runways = []
+        this.routeItems = response.foundAirports
+        this.saveRouteItems()
+        if (response.notFoundAirports.length) {
+          this.loadingError = `The following airports couldn't be found: ${response.notFoundAirports.join(', ')}`
+        }
+      })
+    } catch (err) {
+      this.loadingError = `${err.type}: ${err.error.response.data.error}`
+    } finally {
+      runInAction(() => {
+        this.loading = false
+      })
+    }
+  }
 }
 
 export default new AirportStore()

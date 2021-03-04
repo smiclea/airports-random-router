@@ -1,10 +1,11 @@
 import { observer } from 'mobx-react-lite'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled, { css } from 'styled-components'
 import useStores from '../stores/useStores'
 import Map from '../modules/Map/Map'
 import RouteConfigForm from '../modules/RouteConfigForm/RouteConfigForm'
 import { GenerateRouteRequestBody } from '../../models/Airport'
+import EditModal from '../modules/EditModal/EditModal'
 
 const Wrapper = styled.div`
   padding: 32px;
@@ -24,6 +25,7 @@ const Message = styled.div<{ isError?: boolean }>`
 `
 const HomeContainer = () => {
   const { airportStore } = useStores()
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     airportStore.loadRouteConfig()
@@ -46,13 +48,21 @@ const HomeContainer = () => {
     airportStore.generateFlightPlan(departureIdent, destinationIdent, runwayId, runwayType)
   }
 
-  const handleClearRoute = () => {
-    airportStore.clearRoute()
-    airportStore.saveConfig({
-      ...airportStore.routeConfig,
-      fromAirport: '',
-      toAirport: '',
-    })
+  const handleEditClick = () => {
+    setShowEditModal(true)
+  }
+
+  const handleEditSubmit = (newCodes: string) => {
+    const cleanCodes = newCodes.split('\n').map(str => str.trim()).filter(str => str)
+    const uniqueCodes = cleanCodes.reduce((prevValue, currentValue) => {
+      if (prevValue.indexOf(currentValue) === -1) {
+        prevValue.push(currentValue)
+      }
+      return prevValue
+    },
+    [] as string[])
+    airportStore.editRoute(uniqueCodes)
+    setShowEditModal(false)
   }
 
   return (
@@ -61,7 +71,7 @@ const HomeContainer = () => {
         <RouteConfigForm
           config={airportStore.routeConfig}
           onGenerateClick={handleGenerateRoute}
-          onClear={handleClearRoute}
+          onEditClick={handleEditClick}
         />
         {airportStore.loadingError ? (
           <Message isError>
@@ -83,6 +93,13 @@ const HomeContainer = () => {
           onRequestFlightPlan={handleRequestFlightPlan}
         />
       </Column>
+      {showEditModal ? (
+        <EditModal
+          codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
+          onRequestClose={() => { setShowEditModal(false) }}
+          onSubmit={newCodes => { handleEditSubmit(newCodes) }}
+        />
+      ) : null}
     </Wrapper>
   )
 }
