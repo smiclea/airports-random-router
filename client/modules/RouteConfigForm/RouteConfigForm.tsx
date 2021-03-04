@@ -4,7 +4,7 @@ import { Button, MenuItem, TextField } from '@material-ui/core'
 import { GenerateRouteRequestBody } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
 
-const Wrapper = styled.div``
+const Wrapper = styled.form``
 const FieldRow = styled.div`
   display: flex;
   justify-content: space-between;
@@ -132,8 +132,13 @@ const RouteConfigForm = ({
     })
   }
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    handleGenerateClick()
+  }
+
   return (
-    <Wrapper>
+    <Wrapper onSubmit={handleSubmit}>
       <FieldRow>
         <FieldInputWrapper>
           <TextField
@@ -209,8 +214,8 @@ const RouteConfigForm = ({
           <Button
             color="primary"
             variant="contained"
-            onClick={handleGenerateClick}
             disabled={!startAirport || !endAirport}
+            type="submit"
           >Generate
           </Button>
         </FieldInputWrapper>
