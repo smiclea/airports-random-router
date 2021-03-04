@@ -1,0 +1,53 @@
+{
+  "extends": [
+    "airbnb-typescript"
+  ],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "globals": {},
+  "ignorePatterns": [
+    "*.svg",
+    "*.png",
+    "*.bash",
+    "*.log"
+  ],
+  "rules": {
+    "react/jsx-one-expression-per-line": "off",
+    "@typescript-eslint/semi": [
+      2,
+      "never"
+    ],
+    "arrow-parens": [
+      2,
+      "as-needed"
+    ],
+    "no-console": "off",
+    "class-methods-use-this": "off",
+    "no-underscore-dangle": "off",
+    "jsx-a11y/mouse-events-have-key-events": "off",
+    "react/jsx-no-duplicate-props": "off",
+    "no-nested-ternary": "off",
+    "no-dupe-class-members": "off",
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
+    "no-throw-literal": "off",
+    "@typescript-eslint/type-annotation-spacing": [
+      "error",
+      {
+        "after": true
+      }
+    ],
+    "no-prototype-builtins": "off",
+    "no-param-reassign": "off",
+    "max-len": [
+      "error",
+      {
+        "code": 150
+      }
+    ]
+  }
+}
