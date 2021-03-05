@@ -34,7 +34,6 @@ const GlobalStyle = createGlobalStyle`
     }
     &.map-marker-end .mapboxgl-popup-content {
       background: rgb(255, 152, 0);
-      cursor: default;
     }
     .map-marker-content {
       display: flex;
