@@ -18,7 +18,7 @@ export default async (config: {
 
   const findRoute = async (foundRoute: AirportDb) => {
     currentRoute.push(foundRoute)
-    const distanceToEnd = turfDistance(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates) * 0.539957
+    const distanceToEnd = turfDistance(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates) * 0.539957 // NM
     if (distanceToEnd <= config.maxDistance || currentRoute.length === ROUTE_LIMIT) {
       if (foundRoute.airport_id !== config.toAirport.airport_id) {
         currentRoute.push(config.toAirport)
@@ -28,13 +28,11 @@ export default async (config: {
 
     const searchAround = async (retryCount?: number): Promise<AirportDb[]> => {
       const actualRetryCount = retryCount || 0
-      let actualMaxDistance = (config.maxDistance * 1852)
-      let actualAngle = config.angle
-      if (actualRetryCount) {
-        actualMaxDistance += 50 * 1852 * actualRetryCount
-        actualAngle = Math.max(75, config.angle)
-        console.log(`Increasing search around distance to: ${(actualMaxDistance / 1852).toFixed(0)}NM`)
+      const actualMaxDistance = (config.maxDistance * 1852) + (50 * 1852 * actualRetryCount) // meters
+      if (actualMaxDistance / 1852 >= distanceToEnd) {
+        return []
       }
+
       let searchAroundAirports = await db.searchAround(
         foundRoute,
         config.minDistance * 1852,
@@ -42,11 +40,11 @@ export default async (config: {
         config.runwayMinLength,
       )
       const foundRouteBearing = turfBearing(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates)
-      const minBearing = foundRouteBearing - actualAngle
-      const maxBearing = foundRouteBearing + actualAngle
+      const minBearing = foundRouteBearing - config.angle
+      const maxBearing = foundRouteBearing + config.angle
       searchAroundAirports = searchAroundAirports.filter(saa => {
         const saaBearing = turfBearing(foundRoute.geometry.coordinates, saa.geometry.coordinates)
-        return saaBearing >= minBearing && saaBearing <= maxBearing
+        return !currentRoute.find(r => r.airport_id === saa.airport_id) && saaBearing >= minBearing && saaBearing <= maxBearing
       })
       if (!searchAroundAirports.length && actualRetryCount < MAX_SEARCH_AROUND_RETRIES) {
         return searchAround(actualRetryCount + 1)

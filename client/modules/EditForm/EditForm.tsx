@@ -5,7 +5,9 @@ import {
   TextField,
 } from '@material-ui/core'
 
-const Wrapper = styled.div``
+const Wrapper = styled.div`
+  margin-bottom: 48px;
+`
 
 type Props = {
   codes: string
