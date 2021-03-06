@@ -306,6 +306,9 @@ const Map = ({
       center: [0, 0],
       zoom: 3,
     })
+    mapInstance.dragRotate.disable()
+    mapInstance.touchZoomRotate.disableRotation()
+    mapInstance.touchPitch.disable()
 
     mapInstance.on('load', () => {
       mapInstance.addSource('path', {
