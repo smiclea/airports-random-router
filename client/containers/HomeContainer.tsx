@@ -1,11 +1,12 @@
 import { observer } from 'mobx-react-lite'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import styled, { css } from 'styled-components'
+import { Tab, Tabs } from '@material-ui/core'
 import useStores from '../stores/useStores'
 import Map from '../modules/Map/Map'
 import RouteConfigForm from '../modules/RouteConfigForm/RouteConfigForm'
 import { GenerateRouteRequestBody } from '../../models/Airport'
-import EditModal from '../modules/EditModal/EditModal'
+import EditForm from '../modules/EditForm/EditForm'
 
 const Wrapper = styled.div`
   padding: 32px;
@@ -25,10 +26,10 @@ const Message = styled.div<{ isError?: boolean }>`
 `
 const HomeContainer = () => {
   const { airportStore } = useStores()
-  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     airportStore.loadRouteConfig()
+    airportStore.loadUiConfig()
   }, [])
 
   const handleGenerateRoute = async (config: GenerateRouteRequestBody) => {
@@ -48,10 +49,6 @@ const HomeContainer = () => {
     airportStore.generateFlightPlan(departureIdent, destinationIdent, runwayId, runwayType)
   }
 
-  const handleEditClick = () => {
-    setShowEditModal(true)
-  }
-
   const handleEditSubmit = (newCodes: string) => {
     const cleanCodes = newCodes.split('\n').map(str => str.trim()).filter(str => str)
     const uniqueCodes = cleanCodes.reduce((prevValue, currentValue) => {
@@ -62,17 +59,35 @@ const HomeContainer = () => {
     },
     [] as string[])
     airportStore.editRoute(uniqueCodes)
-    setShowEditModal(false)
+  }
+
+  const handleTabChange = (e: React.ChangeEvent<{}>, newValue: number) => {
+    airportStore.saveUiConfig({ selectedTab: newValue })
   }
 
   return (
     <Wrapper>
       <Column style={{ width: '260px' }}>
-        <RouteConfigForm
-          config={airportStore.routeConfig}
-          onGenerateClick={handleGenerateRoute}
-          onEditClick={handleEditClick}
-        />
+        <Tabs
+          value={airportStore.uiConfig.selectedTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+        >
+          <Tab label="Generate" style={{ minWidth: 72 }} />
+          <Tab label="Edit" style={{ minWidth: 72 }} />
+        </Tabs>
+        <div style={{ marginBottom: '32px' }} />
+        {airportStore.uiConfig.selectedTab === 0 ? (
+          <RouteConfigForm
+            config={airportStore.routeConfig}
+            onGenerateClick={handleGenerateRoute}
+          />
+        ) : (
+          <EditForm
+            codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
+            onSubmit={newCodes => { handleEditSubmit(newCodes) }}
+          />
+        )}
         {airportStore.loadingError ? (
           <Message isError>
             {airportStore.loadingError}
@@ -93,13 +108,6 @@ const HomeContainer = () => {
           onRequestFlightPlan={handleRequestFlightPlan}
         />
       </Column>
-      {showEditModal ? (
-        <EditModal
-          codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
-          onRequestClose={() => { setShowEditModal(false) }}
-          onSubmit={newCodes => { handleEditSubmit(newCodes) }}
-        />
-      ) : null}
     </Wrapper>
   )
 }

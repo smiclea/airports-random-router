@@ -93,13 +93,11 @@ const BEARINGS = [
 type Props = {
   config: GenerateRouteRequestBody
   onGenerateClick: (config: GenerateRouteRequestBody) => void
-  onEditClick: () => void
 }
 
 const RouteConfigForm = ({
   config,
   onGenerateClick,
-  onEditClick,
 }: Props) => {
   const [startAirport, setStartAirport] = useState('')
   const [endAirport, setEndAirport] = useState('')
@@ -218,9 +216,6 @@ const RouteConfigForm = ({
             type="submit"
           >Generate
           </Button>
-        </FieldInputWrapper>
-        <FieldInputWrapper style={{ textAlign: 'right' }}>
-          <Button onClick={onEditClick}>Edit</Button>
         </FieldInputWrapper>
       </FieldRow>
     </Wrapper>

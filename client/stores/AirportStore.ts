@@ -1,5 +1,6 @@
 import { action, observable, runInAction } from 'mobx'
 import { AirportDb, GenerateRouteRequestBody, RunwayDb } from '../../models/Airport'
+import { UiConfig } from '../../models/UiConfig'
 import apiCaller from '../utils/ApiCaller'
 
 export const getAirportSize = (length: number): string => {
@@ -34,6 +35,9 @@ class AirportStore {
     angle: 45,
   }
 
+  @observable
+  uiConfig: UiConfig = { selectedTab: 0 }
+
   @action
   loadRouteConfig() {
     const storage = JSON.parse(localStorage.getItem('route-config') || '{}')
@@ -51,6 +55,18 @@ class AirportStore {
   saveConfig(config: GenerateRouteRequestBody) {
     localStorage.setItem('route-config', JSON.stringify(config))
     this.routeConfig = config
+  }
+
+  @action
+  loadUiConfig() {
+    const storage = JSON.parse(localStorage.getItem('ui-config') || '{}')
+    this.uiConfig = { selectedTab: storage.selectedTab || this.uiConfig.selectedTab }
+  }
+
+  @action
+  saveUiConfig(config: UiConfig) {
+    localStorage.setItem('ui-config', JSON.stringify(config))
+    this.uiConfig = config
   }
 
   saveRouteItems() {
