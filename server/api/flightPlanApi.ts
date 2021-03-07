@@ -50,17 +50,13 @@ const flightPlanApi = (router: Router) => {
         if (destinationRunwayType === 'secondary') {
           origin = [runway.secondary_lonx, runway.secondary_laty]
         }
-        const approachDistancesNM = [10, 5, 1]
+        const approachDistancesNM = [10, 5, 1, 0]
         const approachPoints: number[][] = []
-        const RUNWAY_ALTITUDE = runway.altitude
-        const GROUND_SPEED = 180
-        const FPM = 1000
-        approachDistancesNM.forEach(distance => {
-          const DISTANCE_TO_RUNWAY = distance
-          const CURRENT_ALTITUDE = ((60 * DISTANCE_TO_RUNWAY * FPM) / GROUND_SPEED) + RUNWAY_ALTITUDE
+        approachDistancesNM.forEach(distanceToRunway => {
+          const targetAltitude = distanceToRunway * 300 + runway.altitude
           approachPoints.push([
-            ...turfDestination(origin, DISTANCE_TO_RUNWAY * 1.852, bearing).geometry.coordinates,
-            CURRENT_ALTITUDE,
+            ...turfDestination(origin, distanceToRunway * 1.852, bearing).geometry.coordinates,
+            targetAltitude,
           ])
         })
 
