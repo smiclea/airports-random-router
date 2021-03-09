@@ -5,7 +5,7 @@
         <Title>{{departureIdent}} to {{destinationIdent}}</Title>
         <FPType>VFR</FPType>
         <RouteType>Direct</RouteType>
-        <CruisingAlt>26000</CruisingAlt>
+        <CruisingAlt>22000</CruisingAlt>
         <DepartureID>{{departureIdent}}</DepartureID>
         <DestinationID>{{destinationIdent}}</DestinationID>
         <AppVersion>
