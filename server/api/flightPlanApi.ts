@@ -50,7 +50,7 @@ const flightPlanApi = (router: Router) => {
         if (destinationRunwayType === 'secondary') {
           origin = [runway.secondary_lonx, runway.secondary_laty]
         }
-        const approachDistancesNM = [10, 5, 1, 0]
+        const approachDistancesNM = [10, 5, 0]
         const approachPoints: number[][] = []
         approachDistancesNM.forEach(distanceToRunway => {
           const targetAltitude = distanceToRunway * 300 + runway.altitude
@@ -59,6 +59,12 @@ const flightPlanApi = (router: Router) => {
             targetAltitude,
           ])
         })
+        const finalApproachPoint = destinationRunwayType === 'primary' ? [runway.secondary_lonx, runway.secondary_laty]
+          : [runway.primary_lonx, runway.primary_laty]
+        approachPoints.push([
+          ...finalApproachPoint,
+          runway.altitude,
+        ])
 
         const convertDecimalToDegrees = (x: number, y: number) => {
           const toDegreesMinutesAndSeconds = (coordinate: number) => {
