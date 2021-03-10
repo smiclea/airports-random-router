@@ -242,12 +242,9 @@ const Map = ({
       [runway.primary_lonx, runway.primary_laty],
       [runway.secondary_lonx, runway.secondary_laty],
     ]))
-    const runwayBounds = runways.reduce(
-      (currentBounds, runway) => currentBounds.extend(
-        new mapboxgl.LngLatBounds([runway.primary_lonx, runway.primary_laty], [runway.secondary_lonx, runway.secondary_laty]),
-      ),
-      new mapboxgl.LngLatBounds([runways[0].primary_lonx, runways[0].primary_laty], [runways[0].secondary_lonx, runways[0].secondary_laty]),
-    )
+    const runwayBounds = runways.reduce((currentBounds, runway) => currentBounds.extend([runway.primary_lonx, runway.primary_laty])
+      .extend([runway.secondary_lonx, runway.secondary_laty]),
+    new mapboxgl.LngLatBounds([runways[0].primary_lonx, runways[0].primary_laty], [runways[0].secondary_lonx, runways[0].secondary_laty]))
     map.current?.fitBounds(runwayBounds, { padding: 96 })
 
     // @ts-ignore
