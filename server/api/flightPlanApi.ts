@@ -9,8 +9,8 @@ import Mustache from 'mustache'
 import db from './db'
 import handleError from './helpers/handleError'
 
-const APPROACH_DISTANCES = [10, 5, 0]
-const CRUISING_ALTITUDE = 26000
+const APPROACH_DISTANCES = [5, 0]
+const CRUISING_ALTITUDES = [26000, 8000]
 
 const flightPlanApi = (router: Router) => {
   router.route('/flight-plan')
@@ -69,17 +69,27 @@ const flightPlanApi = (router: Router) => {
           runway.altitude,
         ])
 
-        const descendDistance = (CRUISING_ALTITUDE - waypoints[0][2]) / 100 / 3
-        const descendBearing = turfBearing([waypoints[0][0], waypoints[0][1]], departureAirport.geometry.coordinates)
-        const todPoint = turfDestination([waypoints[0][0], waypoints[0][1]], descendDistance * 1.852, descendBearing).geometry.coordinates
+        const tryAddTod = (cruisingAlitude: number) => {
+          const descendDistance = (cruisingAlitude - waypoints[0][2]) / 100 / 3
+          const descendBearing = turfBearing([waypoints[0][0], waypoints[0][1]], departureAirport.geometry.coordinates)
+          const todPoint = turfDestination([waypoints[0][0], waypoints[0][1]], descendDistance * 1.852, descendBearing).geometry.coordinates
 
-        const distanceStartToApproach = turfDistance(departureAirport.geometry.coordinates, [waypoints[0][0], waypoints[0][1]]) * 0.539957 // NM
-        if (distanceStartToApproach > descendDistance) {
-          waypoints.unshift([
-            ...todPoint,
-            CRUISING_ALTITUDE,
-            'TOD',
-          ])
+          const distanceStartToApproach = turfDistance(departureAirport.geometry.coordinates, [waypoints[0][0], waypoints[0][1]]) * 0.539957 // NM
+          const valid = distanceStartToApproach > descendDistance
+          if (valid) {
+            waypoints.unshift([
+              ...todPoint,
+              cruisingAlitude,
+              'TOD',
+            ])
+          }
+          return valid
+        }
+
+        for (let i = 0; i < CRUISING_ALTITUDES.length; i += 1) {
+          if (tryAddTod(CRUISING_ALTITUDES[i])) {
+            break
+          }
         }
 
         const convertDecimalToDegrees = (x: number, y: number) => {
@@ -108,7 +118,7 @@ const flightPlanApi = (router: Router) => {
         const flightPlan = Mustache.render(template, {
           departureIdent: departureAirport.ident,
           destinationIdent: destinationAirport.ident,
-          cruisingAlt: CRUISING_ALTITUDE,
+          cruisingAlt: Math.round(waypoints[0][2] / 100) * 100,
           waypoints: waypoints.map(point => ({
             name: point[3] || `${Math.round(point[2] / 100) * 100}ft`,
             coordinates: convertDecimalToDegrees(point[0], point[1]),
