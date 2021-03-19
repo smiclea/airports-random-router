@@ -75,21 +75,6 @@ const AIRPORT_SIZES = [
   },
 ]
 
-const BEARINGS = [
-  {
-    label: '45deg',
-    value: 45,
-  },
-  {
-    label: '75deg',
-    value: 75,
-  },
-  {
-    label: '90deg',
-    value: 90,
-  },
-]
-
 type Props = {
   config: GenerateRouteRequestBody
   onGenerateClick: (config: GenerateRouteRequestBody) => void
@@ -141,17 +126,19 @@ const RouteConfigForm = ({
         <FieldInputWrapper>
           <TextField
             fullWidth
-            label="Departure Airport"
+            label="Departure"
             value={startAirport}
             onChange={e => { setStartAirport(e.currentTarget.value) }}
+            helperText="ICAO, name or city"
           />
         </FieldInputWrapper>
         <FieldInputWrapper>
           <TextField
-            label="Destination Airport"
+            label="Arrival"
             fullWidth
             value={endAirport}
             onChange={e => { setEndAirport(e.currentTarget.value) }}
+            helperText="ICAO, name or city"
           />
         </FieldInputWrapper>
       </FieldRow>
@@ -185,26 +172,6 @@ const RouteConfigForm = ({
               </MenuItem>
             ))}
           </TextField>
-        </FieldInputWrapper>
-      </FieldRow>
-      <FieldRow>
-        <FieldInputWrapper>
-          <TextField
-            select
-            label="Max Bearing"
-            value={bearing}
-            onChange={e => { setBearing(Number(e.target.value)) }}
-            fullWidth
-          >
-            {BEARINGS.map(option => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </FieldInputWrapper>
-        <FieldInputWrapper>
-          <div />
         </FieldInputWrapper>
       </FieldRow>
       <FieldRow>
