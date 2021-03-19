@@ -62,13 +62,19 @@ const airportApi = (router: Router) => {
         return
       }
 
-      const fromAirport = await db.getAirportByIdent(String(from).toUpperCase())
+      const fromAirport = (
+        await db.getAirportByIdent(String(from).toUpperCase())
+        || (await db.getAirportsByText(from))[0]
+      )
       if (!fromAirport) {
         res.status(500).json({ error: `'${from}' airport not found` })
         return
       }
 
-      const toAirport = await db.getAirportByIdent(String(to).toUpperCase())
+      const toAirport = (
+        await db.getAirportByIdent(String(to).toUpperCase())
+        || (await db.getAirportsByText(to))[0]
+      )
       if (!toAirport) {
         res.status(500).json({ error: `'${to}' airport not found` })
         return

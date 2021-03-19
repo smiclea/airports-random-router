@@ -89,8 +89,8 @@ class AirportStore {
         url: '/api/airports/generate-random-route',
         method: 'POST',
         data: {
-          from: this.routeConfig.fromAirport,
-          to: this.routeConfig.toAirport,
+          from: this.routeConfig.fromAirport.trim(),
+          to: this.routeConfig.toAirport.trim(),
           minDistance: this.routeConfig.minDistance,
           maxDistance: this.routeConfig.maxDistance,
           runwayMinLength: this.routeConfig.runwayMinLength,

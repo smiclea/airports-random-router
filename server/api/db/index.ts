@@ -38,6 +38,10 @@ class DbManager {
     return this.airportsCollection.findOne({ ident })
   }
 
+  async getAirportsByText(text: string) {
+    return this.airportsCollection.find({ $text: { $search: `"${text}"` } }).sort({ longest_runway_length: -1 }).toArray()
+  }
+
   async getAirportById(id: number): Promise<AirportDb | null> {
     return this.airportsCollection.findOne({ airport_id: id })
   }
@@ -48,19 +52,6 @@ class DbManager {
 
   async getRunway(id: number): Promise<RunwayDb | null> {
     return this.runwaysCollection.findOne({ runway_id: id })
-  }
-
-  private async getCountryByCoords(coordinates: [number, number]): Promise<Country | null> {
-    return (await this.mongoDb.collection<any>('countries_geojson').findOne({
-      geometry: {
-        $geoIntersects: {
-          $geometry: {
-            type: 'Point',
-            coordinates,
-          },
-        },
-      },
-    }))?.properties
   }
 
   async transformAiportsToGeoJson() {
@@ -82,7 +73,7 @@ class DbManager {
         }
       }
       if (new Date().getTime() - lastCheck >= CHECK_PROGESS_EVERY) {
-        console.log(`Progress: ${((index / airportsSimple.length) * 100).toFixed(2)}% (${index} / ${airportsSimple.length})`)
+        process.stdout.write(`\rProgress: ${((index / airportsSimple.length) * 100).toFixed(2)}% (${index} / ${airportsSimple.length})`)
         lastCheck = new Date().getTime()
       }
 
@@ -97,7 +88,7 @@ class DbManager {
       }
     })
 
-    console.log('Droping collection...')
+    console.log('\nDroping collection...')
     await this.airportsCollection.drop()
     console.log('Inserting the airports GeoJSON...')
     await this.airportsCollection.insertMany(airportsGeoJson)
@@ -107,6 +98,7 @@ class DbManager {
       this.airportsCollection.createIndex({ airport_id: 1 }),
       this.airportsCollection.createIndex({ longest_runway_length: 1 }),
       this.airportsCollection.createIndex({ geometry: '2dsphere' }),
+      this.airportsCollection.createIndex({ name: 'text', city: 'text' }),
     ])
   }
 

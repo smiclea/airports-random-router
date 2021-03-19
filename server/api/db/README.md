@@ -1,45 +1,67 @@
 # Update the airports DB from MSFS DB
 
-1. Download Little Nav Map from [github](https://github.com/albar965/littlenavmap/releases)
+## Prepare SQL Lite DB
 
-2. If not automatically prompted, go to Scenery Library -> Load Scenery Library and load the MSFS base packages.
+* Download Little Nav Map from [github](https://github.com/albar965/littlenavmap/releases)
 
-3. Go to Tools -> Files and Directories -> Show Database Files
+* If not automatically prompted, go to Scenery Library -> Load Scenery Library and load the MSFS base packages.
 
-4. Copy 'little_navmap_msfs.sqlite'
+* Go to Tools -> Files and Directories -> Show Database Files
 
-5. Download [SQLite Tools](https://www.sqlite.org/download.html)
+* Copy 'little_navmap_msfs.sqlite'
 
-6. Run:
+* Download [SQLite Tools](https://www.sqlite.org/download.html)
 
-* `.\sqlite3.exe .\little_navmap_msfs.sqlite`
+## Import Airports
 
-* `.headers on`
+* Run:
 
-* `.mode csv`
+```sql
+.\sqlite3.exe .\little_navmap_msfs.sqlite
 
-* `.output airports.csv`
+.headers on
 
-* `SELECT airport_id, ident, name, lonx, laty, altitude, longest_runway_length FROM airport;`
+.mode csv
 
-7. Copy 'airports.csv'
+.output airports.csv
 
-8. Download [MongoDB Tools](https://www.mongodb.com/try/download/database-tools)
+SELECT airport_id, ident, name, city, lonx, laty, altitude, longest_runway_length FROM airport;
+```
 
-9. Drop the old 'airports' collection
+* Copy 'airports.csv'
 
-10. Run:
+* Download [MongoDB Tools](https://www.mongodb.com/try/download/database-tools)
 
-* `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection airports --type csv --headerline --file airports.csv`
+* Drop the old 'airports' collection
 
-11. Create index for 'ident', 'airport_id' fields
+* Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection airports --type csv --headerline --file airports.csv`
 
-12. For `runways` collection do the same except:
+* The indexes for `airports` collection are created in the last step (`yarn transform-airports`)
 
-* `SELECT runway_id, airport_id, length, heading, primary_lonx, primary_laty, secondary_lonx, secondary_laty, altitude, lonx, laty FROM runway;`
+## Import Runways
 
-* `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection runways --type csv --headerline --file runways.csv`
+* Run:
 
-* indexes: airport_id, runway_id
+```sql
+.\sqlite3.exe .\little_navmap_msfs.sqlite
 
-13. Run `yarn transform-airports`
+.headers on
+
+.mode csv
+
+.output runways.csv
+
+SELECT runway_id, airport_id, length, heading, primary_lonx, primary_laty, secondary_lonx, secondary_laty, altitude, lonx, laty FROM runway;
+```
+
+* Copy 'runways.csv'
+
+* Drop the old 'runways' collection
+
+* Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection runways --type csv --headerline --file runways.csv`
+
+* Create indexes: airport_id, runway_id
+
+## Create GeoJSON Data
+
+* Run `yarn transform-airports`

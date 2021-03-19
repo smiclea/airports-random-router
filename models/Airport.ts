@@ -2,6 +2,7 @@ export type AirportDb = {
   airport_id: number
   ident: string
   name: string
+  city: string | null
   geometry: {
     type: 'Point'
     coordinates: [number, number]

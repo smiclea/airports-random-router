@@ -212,7 +212,7 @@ const RouteConfigForm = ({
           <Button
             color="primary"
             variant="contained"
-            disabled={!startAirport || !endAirport}
+            disabled={!startAirport.trim() || !endAirport.trim()}
             type="submit"
           >Generate
           </Button>
