@@ -80,7 +80,7 @@ const flightPlanApi = (router: Router) => {
             waypoints.unshift([
               ...todPoint,
               cruisingAlitude,
-              'TOD',
+              `D${Math.round(waypoints[0][2] / 100) * 100}ft`,
             ])
           }
           return valid
