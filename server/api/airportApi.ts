@@ -15,7 +15,7 @@ const airportApi = (router: Router) => {
       const notFoundAirports: string[] = []
 
       const foundAirports = (await Promise.all(String(codes).split(',').map(async code => {
-        const airport = await db.getAirportByIdent(code.toUpperCase())
+        const airport = (await db.getAirportByIdent(code.toUpperCase()) || (await db.getAirportsByText(code))[0])
         if (!airport) {
           notFoundAirports.push(code)
         }

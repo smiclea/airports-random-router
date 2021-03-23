@@ -1,6 +1,8 @@
 import { action, observable, runInAction } from 'mobx'
-import { AirportDb, GenerateRouteRequestBody, RunwayDb } from '../../models/Airport'
-import { UiConfig } from '../../models/UiConfig'
+import {
+  AirportDb, GenerateFlightPlanRequestBody, GenerateRouteRequestBody, RunwayDb,
+} from '../../models/Airport'
+import { LandHereOptions, UiConfig } from '../../models/UiConfig'
 import apiCaller from '../utils/ApiCaller'
 
 export const getAirportSize = (length: number): string => {
@@ -38,6 +40,12 @@ class AirportStore {
   @observable
   uiConfig: UiConfig = { selectedTab: 0 }
 
+  @observable
+  landHereOptions: LandHereOptions = {
+    cruisingAlt: 26000,
+    waypoints: [8, 5],
+  }
+
   @action
   loadRouteConfig() {
     const storage = JSON.parse(localStorage.getItem('route-config') || '{}')
@@ -67,6 +75,18 @@ class AirportStore {
   saveUiConfig(config: UiConfig) {
     localStorage.setItem('ui-config', JSON.stringify(config))
     this.uiConfig = config
+  }
+
+  @action
+  loadLandHereOptions() {
+    const storage = JSON.parse(localStorage.getItem('land-here-options') || JSON.stringify(this.landHereOptions))
+    this.landHereOptions = storage
+  }
+
+  @action
+  saveLandHereOptions(options: LandHereOptions) {
+    localStorage.setItem('land-here-options', JSON.stringify(options))
+    this.landHereOptions = options
   }
 
   saveRouteItems() {
@@ -142,14 +162,17 @@ class AirportStore {
     this.loadingError = null
 
     try {
+      const requestBody: GenerateFlightPlanRequestBody = {
+        departureAirportIdent,
+        destinationRunwayId,
+        destinationRunwayType,
+        cruisingAlt: this.landHereOptions.cruisingAlt,
+        waypoints: this.landHereOptions.waypoints,
+      }
       const flightPlan: string = await apiCaller.send({
         method: 'POST',
         url: '/api/flight-plan',
-        data: {
-          departureAirportIdent,
-          destinationRunwayId,
-          destinationRunwayType,
-        },
+        data: requestBody,
       })
       const element = document.createElement('a')
       element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(flightPlan)}`)

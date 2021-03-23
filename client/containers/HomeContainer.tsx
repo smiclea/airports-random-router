@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled, { css } from 'styled-components'
 import { Tab, Tabs } from '@material-ui/core'
 import useStores from '../stores/useStores'
@@ -7,11 +7,14 @@ import Map from '../modules/Map/Map'
 import RouteConfigForm from '../modules/RouteConfigForm/RouteConfigForm'
 import { GenerateRouteRequestBody } from '../../models/Airport'
 import EditForm from '../modules/EditForm/EditForm'
+import LandHereOptionsForm from '../modules/LandHereOptionsForm/LandHereOptionsForm'
+import { LandHereOptions } from '../../models/UiConfig'
 
 const Wrapper = styled.div`
   padding: 32px;
   height: 100%;
   display: flex;
+  position: relative;
 `
 const Column = styled.div`
   position: relative;
@@ -21,15 +24,23 @@ const Column = styled.div`
 `
 const Message = styled.div<{ isError?: boolean }>`
   overflow: auto;
-  max-width: 176px;
+  max-width: 300px;
   ${props => (props.isError ? css`color: #f50057;` : '')}
+  position: absolute;
+  left: 338px;
+  background: #303030;
+  top: 46px;
+  border-radius: 4px;
+  padding: 8px 16px;
 `
 const HomeContainer = () => {
   const { airportStore } = useStores()
+  const [showLandHereOptions, setShowLandHereOptions] = useState(false)
 
   useEffect(() => {
     airportStore.loadRouteConfig()
     airportStore.loadUiConfig()
+    airportStore.loadLandHereOptions()
   }, [])
 
   const handleGenerateRoute = async (config: GenerateRouteRequestBody) => {
@@ -43,6 +54,7 @@ const HomeContainer = () => {
 
   const handleRequestRunways = (airportIdent: string) => {
     airportStore.loadRunways(airportIdent)
+    setShowLandHereOptions(true)
   }
 
   const handleRequestFlightPlan = (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => {
@@ -65,39 +77,43 @@ const HomeContainer = () => {
     airportStore.saveUiConfig({ selectedTab: newValue })
   }
 
+  const handleLandHereOptionsSave = (options: LandHereOptions) => {
+    airportStore.saveLandHereOptions(options)
+  }
+
   return (
     <Wrapper>
       <Column style={{ width: '260px' }}>
-        <Tabs
-          value={airportStore.uiConfig.selectedTab}
-          onChange={handleTabChange}
-          variant="fullWidth"
-        >
-          <Tab label="Generate" style={{ minWidth: 72 }} />
-          <Tab label="Edit" style={{ minWidth: 72 }} />
-        </Tabs>
-        <div style={{ marginBottom: '32px' }} />
-        {airportStore.uiConfig.selectedTab === 0 ? (
-          <RouteConfigForm
-            config={airportStore.routeConfig}
-            onGenerateClick={handleGenerateRoute}
+        {showLandHereOptions ? (
+          <LandHereOptionsForm
+            onRequestClose={() => { setShowLandHereOptions(false) }}
+            onSave={handleLandHereOptionsSave}
+            landHereOptions={airportStore.landHereOptions}
           />
         ) : (
-          <EditForm
-            codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
-            onSubmit={newCodes => { handleEditSubmit(newCodes) }}
-          />
+          <>
+            <Tabs
+              value={airportStore.uiConfig.selectedTab}
+              onChange={handleTabChange}
+              variant="fullWidth"
+            >
+              <Tab label="Generate" style={{ minWidth: 72 }} />
+              <Tab label="Edit" style={{ minWidth: 72 }} />
+            </Tabs>
+            <div style={{ marginBottom: '32px' }} />
+            {airportStore.uiConfig.selectedTab === 0 ? (
+              <RouteConfigForm
+                config={airportStore.routeConfig}
+                onGenerateClick={handleGenerateRoute}
+              />
+            ) : (
+              <EditForm
+                codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
+                onSubmit={newCodes => { handleEditSubmit(newCodes) }}
+              />
+            )}
+          </>
         )}
-        {airportStore.loadingError ? (
-          <Message isError>
-            {airportStore.loadingError}
-          </Message>
-        ) : null}
-        {airportStore.loading ? (
-          <Message>
-            Loading ...
-          </Message>
-        ) : null}
       </Column>
       <Column style={{ marginLeft: '32px', flexGrow: 1 }}>
         <Map
@@ -108,6 +124,16 @@ const HomeContainer = () => {
           onRequestFlightPlan={handleRequestFlightPlan}
         />
       </Column>
+      {airportStore.loadingError ? (
+        <Message isError>
+          {airportStore.loadingError}
+        </Message>
+      ) : null}
+      {airportStore.loading ? (
+        <Message>
+          Loading ...
+        </Message>
+      ) : null}
     </Wrapper>
   )
 }

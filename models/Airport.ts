@@ -35,3 +35,11 @@ export type RunwayDb = {
   secondary_lonx: number
   secondary_laty: number
 }
+
+export type GenerateFlightPlanRequestBody = {
+  departureAirportIdent: string
+  destinationRunwayId: number
+  destinationRunwayType: 'primary' | 'secondary'
+  cruisingAlt: number,
+  waypoints: number[]
+}

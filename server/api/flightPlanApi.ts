@@ -8,23 +8,33 @@ import Mustache from 'mustache'
 
 import db from './db'
 import handleError from './helpers/handleError'
-
-const APPROACH_DISTANCES = [5, 0]
-const CRUISING_ALTITUDES = [26000, 8000]
+import { GenerateFlightPlanRequestBody } from '../../models/Airport'
 
 const flightPlanApi = (router: Router) => {
   router.route('/flight-plan')
     .post(async (req, res) => {
       try {
+        const reqBody: GenerateFlightPlanRequestBody = req.body
         const {
           departureAirportIdent,
           destinationRunwayId,
           destinationRunwayType,
-        } = req.body
+          cruisingAlt,
+          waypoints,
+        } = reqBody
         if (destinationRunwayType !== 'primary' && destinationRunwayType !== 'secondary') {
           res.status(500).json({ error: `Runway end must be either 'primary' or 'secondary', not '${destinationRunwayType}'.` })
           return
         }
+        if (Number.isNaN(cruisingAlt)) {
+          res.status(500).json({ error: `Invalid cruising altitude: '${destinationRunwayType}'.` })
+          return
+        }
+        if (!Array.isArray(waypoints) || waypoints.find(w => Number.isNaN(w))) {
+          res.status(500).json({ error: 'Invalid waypoints array.' })
+          return
+        }
+
         const [runway, departureAirport] = await Promise.all([
           db.getRunway(Number(destinationRunwayId)),
           db.getAirportByIdent(String(departureAirportIdent)),
@@ -54,40 +64,47 @@ const flightPlanApi = (router: Router) => {
         if (destinationRunwayType === 'secondary') {
           origin = [runway.secondary_lonx, runway.secondary_laty]
         }
-        const waypoints: any[] = []
-        APPROACH_DISTANCES.forEach(distanceToRunway => {
+        const flightPlanWaypoints: any[] = []
+
+        waypoints.sort((a, b) => b - a)
+        waypoints.push(0)
+        waypoints.forEach(distanceToRunway => {
           const targetAltitude = distanceToRunway * 300 + runway.altitude
-          waypoints.push([
+          flightPlanWaypoints.push([
             ...turfDestination(origin, distanceToRunway * 1.852, bearing).geometry.coordinates,
             targetAltitude,
           ])
         })
         const finalApproachPoint = destinationRunwayType === 'primary' ? [runway.secondary_lonx, runway.secondary_laty]
           : [runway.primary_lonx, runway.primary_laty]
-        waypoints.push([
+        flightPlanWaypoints.push([
           ...finalApproachPoint,
           runway.altitude,
         ])
 
         const tryAddTod = (cruisingAlitude: number) => {
-          const descendDistance = (cruisingAlitude - waypoints[0][2]) / 100 / 3
-          const descendBearing = turfBearing([waypoints[0][0], waypoints[0][1]], departureAirport.geometry.coordinates)
-          const todPoint = turfDestination([waypoints[0][0], waypoints[0][1]], descendDistance * 1.852, descendBearing).geometry.coordinates
+          const descendDistance = (cruisingAlitude - flightPlanWaypoints[0][2]) / 100 / 3
+          const descendBearing = turfBearing([flightPlanWaypoints[0][0], flightPlanWaypoints[0][1]],
+            departureAirport.geometry.coordinates)
+          const todPoint = turfDestination([flightPlanWaypoints[0][0], flightPlanWaypoints[0][1]],
+            descendDistance * 1.852, descendBearing).geometry.coordinates
 
-          const distanceStartToApproach = turfDistance(departureAirport.geometry.coordinates, [waypoints[0][0], waypoints[0][1]]) * 0.539957 // NM
+          const distanceStartToApproach = turfDistance(departureAirport.geometry.coordinates,
+            [flightPlanWaypoints[0][0], flightPlanWaypoints[0][1]]) * 0.539957 // NM
           const valid = distanceStartToApproach > descendDistance
           if (valid) {
-            waypoints.unshift([
+            flightPlanWaypoints.unshift([
               ...todPoint,
               cruisingAlitude,
-              `D${Math.round(waypoints[0][2] / 100) * 100}ft`,
+              `D${Math.round(flightPlanWaypoints[0][2] / 100) * 100}ft`,
             ])
           }
           return valid
         }
 
-        for (let i = 0; i < CRUISING_ALTITUDES.length; i += 1) {
-          if (tryAddTod(CRUISING_ALTITUDES[i])) {
+        const cruisingAltitudes = [cruisingAlt, 8000]
+        for (let i = 0; i < cruisingAltitudes.length; i += 1) {
+          if (tryAddTod(cruisingAltitudes[i])) {
             break
           }
         }
@@ -118,8 +135,8 @@ const flightPlanApi = (router: Router) => {
         const flightPlan = Mustache.render(template, {
           departureIdent: departureAirport.ident,
           destinationIdent: destinationAirport.ident,
-          cruisingAlt: Math.round(waypoints[0][2] / 100) * 100,
-          waypoints: waypoints.map(point => ({
+          cruisingAlt: Math.round(flightPlanWaypoints[0][2] / 100) * 100,
+          waypoints: flightPlanWaypoints.map(point => ({
             name: point[3] || `${Math.round(point[2] / 100) * 100}ft`,
             coordinates: convertDecimalToDegrees(point[0], point[1]),
             altitude: convertToAltitude(point[2]),
