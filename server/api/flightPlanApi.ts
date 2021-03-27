@@ -69,7 +69,7 @@ const flightPlanApi = (router: Router) => {
         waypoints.sort((a, b) => b - a)
         waypoints.push(0)
         waypoints.forEach(distanceToRunway => {
-          const targetAltitude = distanceToRunway * 300 + runway.altitude
+          const targetAltitude = distanceToRunway * 300 + (runway.altitude + 50)
           flightPlanWaypoints.push([
             ...turfDestination(origin, distanceToRunway * 1.852, bearing).geometry.coordinates,
             targetAltitude,
@@ -79,7 +79,7 @@ const flightPlanApi = (router: Router) => {
           : [runway.primary_lonx, runway.primary_laty]
         flightPlanWaypoints.push([
           ...finalApproachPoint,
-          runway.altitude,
+          (runway.altitude + 50),
         ])
 
         const tryAddTod = (cruisingAlitude: number) => {
