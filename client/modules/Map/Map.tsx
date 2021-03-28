@@ -40,6 +40,24 @@ const GlobalStyle = createGlobalStyle`
       flex-direction: column;
       align-items: center;
       margin-top: 3px;
+      position: relative;
+      .map-marker-info {
+        display: none;
+        background: #3f51b5;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        padding: 4px 5px;
+        border-radius: 5px;
+        min-width: 130px;
+        white-space: nowrap;
+        .map-marker-info-city {
+          font-size: 10px;
+          opacity: 0.7;
+        }
+      }
+      :hover .map-marker-info {
+        display: block;
+      }
       .map-marker-altitude {
         font-size: 9px;
         margin-bottom: -9px;
@@ -58,7 +76,7 @@ const GlobalStyle = createGlobalStyle`
       background: #3f51b5;
       position: absolute;
       bottom: -20px;
-      left: 1px;
+      left: -5px;
       padding: 0px 4px;
       border-radius: 3px;
 
@@ -159,6 +177,12 @@ const Map = ({
           <img width="16px" height="16px" src="/flags/${routeItem.countryCode}.svg" title="${routeItem.countryName}" />${routeItem.countryCode}
         </div>
       ` : ''
+      const infoTemplate = `
+        <div class="map-marker-info">
+          <div class="map-marker-info-name">${routeItem.name}</div>
+          <div class="map-marker-info-city">${routeItem.city}, ${routeItem.countryName}</div>
+        </div>
+      `
       const marker = new mapboxgl.Popup({
         className: `map-marker${markerClassName}`,
         closeOnClick: false,
@@ -169,6 +193,7 @@ const Map = ({
         .setLngLat(routeItem.geometry.coordinates)
         .setHTML(
           `<div class="map-marker-content">
+            ${infoTemplate}
             <div class="map-marker-altitude">${routeItem.altitude}ft</div>
             <div class="map-marker-ident">${routeItem.ident}</div>
             <div class="map-marker-size">${bulletString || '<span style="opacity: 0;">E</span>'}</div>
