@@ -180,7 +180,7 @@ const Map = ({
       const infoTemplate = `
         <div class="map-marker-info">
           <div class="map-marker-info-name">${routeItem.name}</div>
-          <div class="map-marker-info-city">${routeItem.city}, ${routeItem.countryName}</div>
+          <div class="map-marker-info-city">${[routeItem.city, routeItem.countryName].filter(Boolean).join(', ')}</div>
         </div>
       `
       const marker = new mapboxgl.Popup({
