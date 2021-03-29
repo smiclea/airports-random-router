@@ -57,8 +57,9 @@ const HomeContainer = () => {
     setShowLandHereOptions(true)
   }
 
-  const handleRequestFlightPlan = (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => {
-    airportStore.generateFlightPlan(departureIdent, destinationIdent, runwayId, runwayType)
+  const handleRequestFlightPlan = async (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => {
+    await airportStore.generateFlightPlan(departureIdent, destinationIdent, runwayId, runwayType)
+    setShowLandHereOptions(false)
   }
 
   const handleEditSubmit = (newCodes: string) => {
