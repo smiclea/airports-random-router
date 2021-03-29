@@ -12,6 +12,9 @@ import { getAirportSize } from '../../stores/AirportStore'
 const GlobalStyle = createGlobalStyle`
   .map-marker {
     z-index: 99999;
+    :hover {
+      z-index: 999999;
+    }
 
     .mapboxgl-popup-tip {
       display: none;
