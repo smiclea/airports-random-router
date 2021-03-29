@@ -10,6 +10,8 @@ import db from './db'
 import handleError from './helpers/handleError'
 import { GenerateFlightPlanRequestBody } from '../../models/Airport'
 
+const DEFAULT_CRUISING_ALTITUDE = 10000
+
 const flightPlanApi = (router: Router) => {
   router.route('/flight-plan')
     .post(async (req, res) => {
@@ -20,7 +22,7 @@ const flightPlanApi = (router: Router) => {
           destinationRunwayId,
           destinationRunwayType,
           cruisingAlt,
-          waypoints,
+          runwayExt,
         } = reqBody
         if (destinationRunwayType !== 'primary' && destinationRunwayType !== 'secondary') {
           res.status(500).json({ error: `Runway end must be either 'primary' or 'secondary', not '${destinationRunwayType}'.` })
@@ -30,8 +32,8 @@ const flightPlanApi = (router: Router) => {
           res.status(500).json({ error: `Invalid cruising altitude: '${destinationRunwayType}'.` })
           return
         }
-        if (!Array.isArray(waypoints) || waypoints.find(w => Number.isNaN(w))) {
-          res.status(500).json({ error: 'Invalid waypoints array.' })
+        if (Number.isNaN(runwayExt)) {
+          res.status(500).json({ error: `Invalid runway ext distance: '${runwayExt}'.` })
           return
         }
 
@@ -66,16 +68,16 @@ const flightPlanApi = (router: Router) => {
         }
         const flightPlanWaypoints: any[] = []
 
-        waypoints.sort((a, b) => b - a)
-        waypoints.push(0)
-        waypoints.forEach(distanceToRunway => {
+        const rwyExtWaypoints = [runwayExt, 0]
+        rwyExtWaypoints.forEach(distanceToRunway => {
           const targetAltitude = distanceToRunway * 300 + (runway.altitude + 50)
           flightPlanWaypoints.push([
             ...turfDestination(origin, distanceToRunway * 1.852, bearing).geometry.coordinates,
             targetAltitude,
           ])
         })
-        const finalApproachPoint = destinationRunwayType === 'primary' ? [runway.secondary_lonx, runway.secondary_laty]
+        const finalApproachPoint = destinationRunwayType === 'primary'
+          ? [runway.secondary_lonx, runway.secondary_laty]
           : [runway.primary_lonx, runway.primary_laty]
         flightPlanWaypoints.push([
           ...finalApproachPoint,
@@ -102,7 +104,7 @@ const flightPlanApi = (router: Router) => {
           return valid
         }
 
-        const cruisingAltitudes = [cruisingAlt, 8000]
+        const cruisingAltitudes = [cruisingAlt, DEFAULT_CRUISING_ALTITUDE]
         for (let i = 0; i < cruisingAltitudes.length; i += 1) {
           if (tryAddTod(cruisingAltitudes[i])) {
             break

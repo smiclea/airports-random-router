@@ -41,5 +41,5 @@ export type GenerateFlightPlanRequestBody = {
   destinationRunwayId: number
   destinationRunwayType: 'primary' | 'secondary'
   cruisingAlt: number,
-  waypoints: number[]
+  runwayExt: number
 }

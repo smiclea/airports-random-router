@@ -4,5 +4,5 @@ export type UiConfig = {
 
 export type LandHereOptions = {
   cruisingAlt: number
-  waypoints: number[]
+  runwayExt: number
 }

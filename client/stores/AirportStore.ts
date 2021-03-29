@@ -43,7 +43,7 @@ class AirportStore {
   @observable
   landHereOptions: LandHereOptions = {
     cruisingAlt: 26000,
-    waypoints: [8, 5],
+    runwayExt: 5,
   }
 
   @action
@@ -167,7 +167,7 @@ class AirportStore {
         destinationRunwayId,
         destinationRunwayType,
         cruisingAlt: this.landHereOptions.cruisingAlt,
-        waypoints: this.landHereOptions.waypoints,
+        runwayExt: this.landHereOptions.runwayExt,
       }
       const flightPlan: string = await apiCaller.send({
         method: 'POST',
