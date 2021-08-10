@@ -29,7 +29,7 @@ const GlobalStyle = createGlobalStyle`
       align-items: center;
       padding-top: 16px;
       background: #3f51b5;
-      cursor: pointer;
+      cursor: default;
     }
     &.map-marker-start .mapboxgl-popup-content {
       background: #f50057;
@@ -123,7 +123,6 @@ type Props = {
   routeItems: AirportDb[]
   runways: RunwayDb[]
   onLoad: () => void
-  onRequestRunways: (airportIdent: string) => void
   onRequestFlightPlan: (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => void
 }
 
@@ -131,7 +130,7 @@ const Map = ({
   routeItems,
   runways,
   onLoad,
-  onRequestRunways,
+  // onRequestRunways,
   onRequestFlightPlan,
 }: Props) => {
   const map = useRef<mapboxgl.Map>()
@@ -206,13 +205,13 @@ const Map = ({
         )
         .addTo(map.current!)
 
-      if (i > 0) {
-        marker.getElement().addEventListener('click', () => {
-          onRequestRunways(routeItem.ident)
-          departureAirportRef.current = markersToShowOnMap[i - 1].ident
-          destinationAirportRef.current = routeItem.ident
-        })
-      }
+      // if (i > 0) {
+      //   marker.getElement().addEventListener('click', () => {
+      //     onRequestRunways(routeItem.ident)
+      //     departureAirportRef.current = markersToShowOnMap[i - 1].ident
+      //     destinationAirportRef.current = routeItem.ident
+      //   })
+      // }
 
       markersRef.current.push(marker)
     })

@@ -33,7 +33,7 @@ class AirportStore {
     toAirport: '',
     minDistance: 50,
     maxDistance: 250,
-    runwayMinLength: 5001,
+    runwayMinLength: 1001,
     angle: 45,
   }
 

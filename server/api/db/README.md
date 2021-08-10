@@ -1,14 +1,14 @@
-# Update the airports DB from MSFS DB
+# Update the airports DB from Navigraph
 
 ## Prepare SQL Lite DB
 
 * Download Little Nav Map from [github](https://github.com/albar965/littlenavmap/releases)
 
-* If not automatically prompted, go to Scenery Library -> Load Scenery Library and load the MSFS base packages.
+* Make sure navigraph is up to date in little nav map, using the navigraph addon update tool.
 
 * Go to Tools -> Files and Directories -> Show Database Files
 
-* Copy 'little_navmap_msfs.sqlite'
+* Copy 'little_navmap_navigraph.sqlite'
 
 * Download [SQLite Tools](https://www.sqlite.org/download.html)
 
@@ -17,7 +17,7 @@
 * Run:
 
 ```sql
-.\sqlite3.exe .\little_navmap_msfs.sqlite
+.\sqlite3.exe .\little_navmap_navigraph.sqlite
 
 .headers on
 

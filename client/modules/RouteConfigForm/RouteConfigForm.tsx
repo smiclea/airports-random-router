@@ -21,53 +21,46 @@ const FieldInputWrapper = styled.div`
   }
 `
 
-const LEG_DISTANCES = [
-  {
-    label: '5-50 NM',
-    value: 50,
-  },
-  {
-    label: '50-250 NM',
-    value: 250,
-  },
-  {
-    label: '250-500 NM',
-    value: 500,
-  },
-  {
-    label: '500-1000 NM',
-    value: 1000,
-  },
-  {
-    label: '1000-3000 NM',
-    value: 3000,
-  },
-  {
-    label: '3000-5000 NM',
-    value: 5000,
-  },
-]
-
 const AIRPORT_SIZES = [
   {
-    label: `> 1000ft ${getAirportSize(10001)}`,
+    label: `> 10000ft ${getAirportSize(10001)}`,
     value: 10001,
   },
   {
-    label: `> 8500ft ${getAirportSize(8501)}`,
-    value: 8501,
+    label: `> 9000ft ${getAirportSize(9001)}`,
+    value: 9001,
+  },
+  {
+    label: `> 8000ft ${getAirportSize(8001)}`,
+    value: 8001,
   },
   {
     label: `> 7000ft ${getAirportSize(7001)}`,
     value: 7001,
   },
   {
+    label: `> 6000ft ${getAirportSize(6001)}`,
+    value: 6001,
+  },
+  {
     label: `> 5000ft ${getAirportSize(5001)}`,
     value: 5001,
   },
   {
-    label: `> 2300ft ${getAirportSize(2301)}`,
-    value: 2301,
+    label: `> 4000ft ${getAirportSize(4001)}`,
+    value: 4001,
+  },
+  {
+    label: `> 3000ft ${getAirportSize(3001)}`,
+    value: 3001,
+  },
+  {
+    label: `> 2000ft ${getAirportSize(2001)}`,
+    value: 2001,
+  },
+  {
+    label: `> 1000ft ${getAirportSize(1001)}`,
+    value: 1001,
   },
   {
     label: '> 0ft',
@@ -86,30 +79,26 @@ const RouteConfigForm = ({
 }: Props) => {
   const [startAirport, setStartAirport] = useState('')
   const [endAirport, setEndAirport] = useState('')
-  const [legDistance, setLegDistance] = useState(250)
-  const [airportSize, setAirportSize] = useState(7001)
+  const [legDistanceMin, setLegDistanceMin] = useState(5)
+  const [legDistanceMax, setLegDistanceMax] = useState(50)
+  const [airportSize, setAirportSize] = useState(1001)
   const [bearing, setBearing] = useState(45)
 
   useEffect(() => {
     setStartAirport(config.fromAirport)
     setEndAirport(config.toAirport)
-    setLegDistance(config.maxDistance)
+    setLegDistanceMin(config.minDistance)
+    setLegDistanceMax(config.maxDistance)
     setAirportSize(config.runwayMinLength)
     setBearing(config.angle)
   }, [config])
 
   const handleGenerateClick = () => {
-    let minDistance = 5
-    const legIndex = LEG_DISTANCES.findIndex(l => l.value === legDistance)
-    if (legIndex > 0) {
-      minDistance = LEG_DISTANCES[legIndex - 1].value
-    }
-
     onGenerateClick({
       fromAirport: startAirport,
       toAirport: endAirport,
-      maxDistance: legDistance,
-      minDistance,
+      maxDistance: legDistanceMax,
+      minDistance: legDistanceMin,
       runwayMinLength: airportSize,
       angle: bearing,
     })
@@ -145,19 +134,24 @@ const RouteConfigForm = ({
       <FieldRow>
         <FieldInputWrapper>
           <TextField
-            select
-            label="Leg Distance"
-            value={legDistance}
-            onChange={e => { setLegDistance(Number(e.target.value)) }}
             fullWidth
-          >
-            {LEG_DISTANCES.map(option => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            label="Leg Distance Min"
+            type="number"
+            value={legDistanceMin}
+            onChange={e => { setLegDistanceMin(Number(e.currentTarget.value)) }}
+          />
         </FieldInputWrapper>
+        <FieldInputWrapper>
+          <TextField
+            label="Leg Distance Max"
+            fullWidth
+            type="number"
+            value={legDistanceMax}
+            onChange={e => { setLegDistanceMax(Number(e.currentTarget.value)) }}
+          />
+        </FieldInputWrapper>
+      </FieldRow>
+      <FieldRow>
         <FieldInputWrapper>
           <TextField
             select

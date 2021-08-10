@@ -52,10 +52,10 @@ const HomeContainer = () => {
     airportStore.loadRouteItems()
   }
 
-  const handleRequestRunways = (airportIdent: string) => {
-    airportStore.loadRunways(airportIdent)
-    setShowLandHereOptions(true)
-  }
+  // const handleRequestRunways = (airportIdent: string) => {
+  //   airportStore.loadRunways(airportIdent)
+  //   setShowLandHereOptions(true)
+  // }
 
   const handleRequestFlightPlan = async (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => {
     await airportStore.generateFlightPlan(departureIdent, destinationIdent, runwayId, runwayType)
@@ -121,7 +121,6 @@ const HomeContainer = () => {
           routeItems={airportStore.routeItems}
           runways={airportStore.runways}
           onLoad={handleMapLoad}
-          onRequestRunways={handleRequestRunways}
           onRequestFlightPlan={handleRequestFlightPlan}
         />
       </Column>
