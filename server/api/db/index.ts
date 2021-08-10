@@ -1,7 +1,9 @@
 import { MongoClient, Db } from 'mongodb'
 import pointInPolygon from '@turf/boolean-point-in-polygon'
 import RegExpUtil from '../../../common/utils/RegExpUtil'
-import { AirportDb, RunwayDb } from '../../../models/Airport'
+import {
+  AirportDb, ApproachDb, ApproachType, RunwayDb,
+} from '../../../models/Airport'
 import { Country } from '../../../models/Country'
 import env from '../../env'
 
@@ -14,6 +16,10 @@ class DbManager {
 
   private get airportsCollection() {
     return this.mongoDb.collection<AirportDb>('airports_geojson')
+  }
+
+  private get approachesCollection() {
+    return this.mongoDb.collection<ApproachDb>('approaches')
   }
 
   private get runwaysCollection() {
@@ -55,11 +61,21 @@ class DbManager {
   }
 
   async transformAiportsToGeoJson() {
-    console.log('Loading airports and countries collection...')
-    const [airportsSimple, countriesGeojson] = await Promise.all([
+    console.log('Loading airports, countries and approaches collection...')
+    const [airportsSimple, countriesGeojson, approaches] = await Promise.all([
       this.mongoDb.collection('airports').find({}).toArray(),
       this.mongoDb.collection<any>('countries_geojson').find({}).toArray(),
+      this.mongoDb.collection<ApproachDb>('approaches').find({}).toArray(),
     ])
+
+    const approachesAssoc: {[aiportId: number]: string[]} = {}
+    approaches.forEach(app => {
+      if (approachesAssoc[app.airport_id]) {
+        approachesAssoc[app.airport_id].push(app.type)
+      } else {
+        approachesAssoc[app.airport_id] = [app.type]
+      }
+    })
 
     const CHECK_PROGESS_EVERY = 5 * 1000
     let lastCheck = new Date().getTime()
@@ -85,14 +101,15 @@ class DbManager {
         },
         countryCode: country?.ISO_A2 || country?.ADMIN || null,
         countryName: country?.ADMIN || 'Unknown',
+        approaches: approachesAssoc[airportSimple.airport_id],
       }
     })
 
-    console.log('\nDroping collection...')
+    console.log('\nDroping airports GeoJSON collection...')
     await this.airportsCollection.drop()
     console.log('Inserting the airports GeoJSON...')
     await this.airportsCollection.insertMany(airportsGeoJson)
-    console.log('Creating indexes...')
+    console.log('Creating airports GeoJSON indexes...')
     await Promise.all([
       this.airportsCollection.createIndex({ ident: 1 }),
       this.airportsCollection.createIndex({ airport_id: 1 }),
@@ -102,8 +119,13 @@ class DbManager {
     ])
   }
 
-  async searchAround(airport: AirportDb, minDistance: number, maxDistance: number, minRunwayLength: number) {
-    return this.airportsCollection.find({
+  async searchAround(
+    airport: AirportDb,
+    minDistance: number, maxDistance: number,
+    minRunwayLength: number,
+    approachType: ApproachType,
+  ) {
+    const airports = await this.airportsCollection.find({
       $and: [
         {
           geometry: {
@@ -125,6 +147,16 @@ class DbManager {
         },
       ],
     }).toArray()
+
+    return airports.filter(air => {
+      if (approachType === 'ils') {
+        return air.approaches?.find(app => app === 'ILS')
+      }
+      if (approachType === 'approach') {
+        return air.approaches?.length
+      }
+      return true
+    })
   }
 }
 

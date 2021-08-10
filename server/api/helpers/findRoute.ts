@@ -1,6 +1,6 @@
 import turfDistance from '@turf/distance'
 import turfBearing from '@turf/bearing'
-import { AirportDb } from '../../../models/Airport'
+import { AirportDb, ApproachType } from '../../../models/Airport'
 import db from '../db'
 
 const ROUTE_LIMIT = 49
@@ -13,6 +13,7 @@ export default async (config: {
   maxDistance: number,
   runwayMinLength: number,
   angle: number,
+  approachType: ApproachType
 }) => {
   const currentRoute: AirportDb[] = []
 
@@ -38,6 +39,7 @@ export default async (config: {
         config.minDistance * 1852,
         actualMaxDistance,
         config.runwayMinLength,
+        config.approachType,
       )
       const foundRouteBearing = turfBearing(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates)
       const minBearing = foundRouteBearing - config.angle

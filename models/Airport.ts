@@ -11,7 +11,15 @@ export type AirportDb = {
   longest_runway_length: number
   countryCode: string | null
   countryName: string
+  approaches: string[] | null
 }
+
+export type ApproachDb = {
+  airport_id: number
+  type: string
+}
+
+export type ApproachType = 'ils' | 'approach' | 'all'
 
 export type GenerateRouteRequestBody = {
   fromAirport: string
@@ -20,6 +28,7 @@ export type GenerateRouteRequestBody = {
   maxDistance: number,
   runwayMinLength: number,
   angle: number
+  approachType: ApproachType
 }
 
 export type RunwayDb = {

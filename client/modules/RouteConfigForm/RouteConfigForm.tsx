@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { Button, MenuItem, TextField } from '@material-ui/core'
-import { GenerateRouteRequestBody } from '../../../models/Airport'
+import {
+  Button, FormLabel, MenuItem, TextField,
+  RadioGroup, FormControlLabel, Radio,
+} from '@material-ui/core'
+import { ApproachType, GenerateRouteRequestBody } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
 
 const Wrapper = styled.form``
@@ -17,7 +20,7 @@ const FieldRow = styled.div`
 const FieldInputWrapper = styled.div`
   width: 100%;
   label {
-    width: 160px;
+    width: 172px;
   }
 `
 
@@ -83,6 +86,7 @@ const RouteConfigForm = ({
   const [legDistanceMax, setLegDistanceMax] = useState(50)
   const [airportSize, setAirportSize] = useState(1001)
   const [bearing, setBearing] = useState(45)
+  const [approachType, setApproachType] = useState<ApproachType>('all')
 
   useEffect(() => {
     setStartAirport(config.fromAirport)
@@ -91,6 +95,7 @@ const RouteConfigForm = ({
     setLegDistanceMax(config.maxDistance)
     setAirportSize(config.runwayMinLength)
     setBearing(config.angle)
+    setApproachType(config.approachType)
   }, [config])
 
   const handleGenerateClick = () => {
@@ -101,6 +106,7 @@ const RouteConfigForm = ({
       minDistance: legDistanceMin,
       runwayMinLength: airportSize,
       angle: bearing,
+      approachType,
     })
   }
 
@@ -118,7 +124,7 @@ const RouteConfigForm = ({
             label="Departure"
             value={startAirport}
             onChange={e => { setStartAirport(e.currentTarget.value) }}
-            helperText="ICAO, name or city"
+            helperText="ICAO or airport name"
           />
         </FieldInputWrapper>
         <FieldInputWrapper>
@@ -127,7 +133,7 @@ const RouteConfigForm = ({
             fullWidth
             value={endAirport}
             onChange={e => { setEndAirport(e.currentTarget.value) }}
-            helperText="ICAO, name or city"
+            helperText="ICAO or airport name"
           />
         </FieldInputWrapper>
       </FieldRow>
@@ -166,6 +172,33 @@ const RouteConfigForm = ({
               </MenuItem>
             ))}
           </TextField>
+        </FieldInputWrapper>
+      </FieldRow>
+      <FieldRow>
+        <FieldInputWrapper>
+          <FormLabel>Approach</FormLabel>
+          <RadioGroup
+            row
+            name="approachType"
+            value={approachType}
+            onChange={e => { setApproachType(e.target.value as ApproachType) }}
+          >
+            <FormControlLabel
+              value="ils"
+              control={<Radio />}
+              label="Has ILS"
+            />
+            <FormControlLabel
+              value="approach"
+              control={<Radio />}
+              label="Has approach"
+            />
+            <FormControlLabel
+              value="all"
+              control={<Radio />}
+              label="Doesn't matter"
+            />
+          </RadioGroup>
         </FieldInputWrapper>
       </FieldRow>
       <FieldRow>

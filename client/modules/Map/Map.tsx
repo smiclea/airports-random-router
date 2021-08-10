@@ -57,6 +57,10 @@ const GlobalStyle = createGlobalStyle`
           font-size: 10px;
           opacity: 0.7;
         }
+        .map-marker-info-approach {
+          font-size: 10px;
+          opacity: 0.7;
+        }
       }
       :hover .map-marker-info {
         display: block;
@@ -183,6 +187,7 @@ const Map = ({
         <div class="map-marker-info">
           <div class="map-marker-info-name">${routeItem.name}</div>
           <div class="map-marker-info-city">${[routeItem.city, routeItem.countryName].filter(Boolean).join(', ')}</div>
+          <div class="map-marker-info-approach">${routeItem.approaches?.join(', ') || ''}</div>
         </div>
       `
       const marker = new mapboxgl.Popup({

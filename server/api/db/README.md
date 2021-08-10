@@ -38,12 +38,34 @@ SELECT airport_id, ident, name, city, lonx, laty, altitude, longest_runway_lengt
 
 * The indexes for `airports` collection are created in the last step (`yarn transform-airports`)
 
-## Import Runways
+## Import Approaches
 
 * Run:
 
 ```sql
-.\sqlite3.exe .\little_navmap_msfs.sqlite
+.\sqlite3.exe .\little_navmap_navigraph.sqlite
+
+.headers on
+
+.mode csv
+
+.output approaches.csv
+
+SELECT airport_id, type FROM approach GROUP BY airport_id, type;
+```
+
+* Copy 'approaches.csv'
+
+* Drop the old 'approaches' collection
+
+* Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection approaches --type csv --headerline --file approaches.csv`
+
+## Import Runways (optional step)
+
+* Run:
+
+```sql
+.\sqlite3.exe .\little_navmap_navigraph.sqlite
 
 .headers on
 

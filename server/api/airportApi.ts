@@ -42,9 +42,9 @@ const airportApi = (router: Router) => {
   router.route('/airports/generate-random-route')
     .post(async (req, res) => {
       const {
-        from, to, minDistance, maxDistance, runwayMinLength, angle,
+        from, to, minDistance, maxDistance, runwayMinLength, angle, approachType,
       } = req.body
-      if (!from || !to || !Number(minDistance) || !Number(maxDistance) || !Number(runwayMinLength) || angle === undefined) {
+      if (!from || !to || !Number(minDistance) || !Number(maxDistance) || !Number(runwayMinLength) || angle === undefined || !approachType) {
         res.status(500).json({ error: 'Invalid request body!' })
         return
       }
@@ -88,6 +88,7 @@ const airportApi = (router: Router) => {
           maxDistance: Number(maxDistance),
           runwayMinLength: Number(runwayMinLength),
           angle: Number(angle),
+          approachType,
         }))
       } catch (err) {
         handleError('Route Generator error', err, res)

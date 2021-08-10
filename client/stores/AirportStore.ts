@@ -35,6 +35,7 @@ class AirportStore {
     maxDistance: 250,
     runwayMinLength: 1001,
     angle: 45,
+    approachType: 'all',
   }
 
   @observable
@@ -56,6 +57,7 @@ class AirportStore {
       maxDistance: storage.maxDistance || this.routeConfig.maxDistance,
       runwayMinLength: storage.runwayMinLength || this.routeConfig.runwayMinLength,
       angle: storage.angle || this.routeConfig.angle,
+      approachType: storage.approachType || this.routeConfig.approachType,
     }
   }
 
@@ -115,6 +117,7 @@ class AirportStore {
           maxDistance: this.routeConfig.maxDistance,
           runwayMinLength: this.routeConfig.runwayMinLength,
           angle: this.routeConfig.angle,
+          approachType: this.routeConfig.approachType,
         },
       })
       runInAction(() => {
