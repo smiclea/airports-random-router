@@ -2,7 +2,7 @@ import { MongoClient, Db } from 'mongodb'
 import pointInPolygon from '@turf/boolean-point-in-polygon'
 import RegExpUtil from '../../../common/utils/RegExpUtil'
 import {
-  AirportDb, ApproachDb, ApproachType, RunwayDb,
+  AirportDb, ApproachDb, ApproachType,
 } from '../../../models/Airport'
 import { Country } from '../../../models/Country'
 import env from '../../env'
@@ -21,10 +21,6 @@ class DbManager {
 
   private get approachesCollection() {
     return this.mongoDb.collection<ApproachDb>('approaches')
-  }
-
-  private get runwaysCollection() {
-    return this.mongoDb.collection<RunwayDb>('runways')
   }
 
   async connect() {
@@ -61,14 +57,6 @@ class DbManager {
 
   async getAirportById(id: number): Promise<AirportDb | null> {
     return this.airportsCollection.findOne({ airport_id: id })
-  }
-
-  async getRunways(airportId: number): Promise<RunwayDb[]> {
-    return this.runwaysCollection.find({ airport_id: airportId }).toArray()
-  }
-
-  async getRunway(id: number): Promise<RunwayDb | null> {
-    return this.runwaysCollection.findOne({ runway_id: id })
   }
 
   async transformAiportsToGeoJson() {

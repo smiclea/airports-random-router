@@ -3,10 +3,10 @@ import {
   action, computed, observable, runInAction,
 } from 'mobx'
 import {
-  AirportDb, GenerateFlightPlanRequestBody, GenerateRouteRequestBody, RunwayDb,
+  AirportDb, GenerateRouteRequestBody,
 } from '../../models/Airport'
 import { GeographicalBounds } from '../../models/Geography'
-import { LandHereOptions, UiConfig } from '../../models/UiConfig'
+import { UiConfig } from '../../models/UiConfig'
 import apiCaller from '../utils/ApiCaller'
 
 export const getAirportSize = (length: number): string => {
@@ -21,9 +21,6 @@ export const getAirportSize = (length: number): string => {
 class AirportStore {
   @observable
   routeItems: AirportDb[] = []
-
-  @observable
-  runways: RunwayDb[] = []
 
   @observable
   loading = false
@@ -45,12 +42,6 @@ class AirportStore {
   uiConfig: UiConfig = {
     selectedTab: 0,
     approachType: 'all',
-  }
-
-  @observable
-  landHereOptions: LandHereOptions = {
-    cruisingAlt: 26000,
-    runwayExt: 5,
   }
 
   @computed
@@ -103,18 +94,6 @@ class AirportStore {
     this.uiConfig = config
   }
 
-  @action
-  loadLandHereOptions() {
-    const storage = JSON.parse(localStorage.getItem('land-here-options') || JSON.stringify(this.landHereOptions))
-    this.landHereOptions = storage
-  }
-
-  @action
-  saveLandHereOptions(options: LandHereOptions) {
-    localStorage.setItem('land-here-options', JSON.stringify(options))
-    this.landHereOptions = options
-  }
-
   saveRouteItems() {
     localStorage.setItem('route-items', JSON.stringify(this.routeItems))
   }
@@ -153,7 +132,6 @@ class AirportStore {
   async generateRoute() {
     this.loading = true
     this.loadingError = null
-    this.runways = []
 
     try {
       const routeItems: AirportDb[] = await apiCaller.send({
@@ -183,69 +161,6 @@ class AirportStore {
   }
 
   @action
-  async loadRunways(airportIdent: string) {
-    this.loading = true
-    this.loadingError = null
-
-    try {
-      const runways: RunwayDb[] = await apiCaller.send({
-        url: `/api/airports/${airportIdent}`,
-      })
-      runInAction(() => {
-        this.runways = runways
-      })
-    } catch (err) {
-      this.loadingError = `${err.type}: ${err.error.response.data.error}`
-    } finally {
-      runInAction(() => {
-        this.loading = false
-      })
-    }
-  }
-
-  @action
-  async generateFlightPlan(
-    departureAirportIdent: string,
-    destinationAirportIdent: string,
-    destinationRunwayId: number,
-    destinationRunwayType: 'primary' | 'secondary',
-  ) {
-    this.loading = true
-    this.loadingError = null
-
-    try {
-      const requestBody: GenerateFlightPlanRequestBody = {
-        departureAirportIdent,
-        destinationRunwayId,
-        destinationRunwayType,
-        cruisingAlt: this.landHereOptions.cruisingAlt,
-        runwayExt: this.landHereOptions.runwayExt,
-      }
-      const flightPlan: string = await apiCaller.send({
-        method: 'POST',
-        url: '/api/flight-plan',
-        data: requestBody,
-      })
-      const element = document.createElement('a')
-      element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(flightPlan)}`)
-      element.setAttribute('download', `${departureAirportIdent} - ${destinationAirportIdent}.pln`)
-
-      element.style.display = 'none'
-      document.body.appendChild(element)
-
-      element.click()
-
-      document.body.removeChild(element)
-    } catch (err) {
-      this.loadingError = `${err.type}: ${err.error.response.data.error}`
-    } finally {
-      runInAction(() => {
-        this.loading = false
-      })
-    }
-  }
-
-  @action
   clearRoute() {
     this.routeItems = []
     this.saveRouteItems()
@@ -264,7 +179,6 @@ class AirportStore {
         url: `/api/airports?codes=${codes.join(',')}`,
       })
       runInAction(() => {
-        this.runways = []
         this.routeItems = response.foundAirports
         this.saveRouteItems()
         if (response.notFoundAirports.length) {

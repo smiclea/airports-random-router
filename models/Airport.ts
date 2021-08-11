@@ -29,25 +29,3 @@ export type GenerateRouteRequestBody = {
   runwayMinLength: number,
   angle: number
 }
-
-export type RunwayDb = {
-  airport_id: number
-  runway_id: number
-  length: number
-  lonx: number
-  laty: number
-  altitude: number
-  heading: number
-  primary_lonx: number
-  primary_laty: number
-  secondary_lonx: number
-  secondary_laty: number
-}
-
-export type GenerateFlightPlanRequestBody = {
-  departureAirportIdent: string
-  destinationRunwayId: number
-  destinationRunwayType: 'primary' | 'secondary'
-  cruisingAlt: number,
-  runwayExt: number
-}

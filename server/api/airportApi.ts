@@ -41,16 +41,6 @@ const airportApi = (router: Router) => {
     })
 
   router.route('/airports/:ident')
-    .get(async (req, res) => {
-      const { ident } = req.params
-      const airport = await db.getAirportByIdent(ident)
-      if (!airport) {
-        res.status(404).json({ error: `Airport with ident '${ident}' not found` })
-        return
-      }
-      const runways = await db.getRunways(airport.airport_id)
-      res.json(runways)
-    })
 
   router.route('/airports/generate-random-route')
     .post(async (req, res) => {

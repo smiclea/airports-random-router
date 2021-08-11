@@ -6,7 +6,7 @@ import turfDistance from '@turf/distance'
 import turfAlong from '@turf/along'
 import turfBearing from '@turf/bearing'
 
-import { AirportDb, RunwayDb } from '../../../models/Airport'
+import { AirportDb } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
 import { GeographicalBounds } from '../../../models/Geography'
 
@@ -110,18 +110,6 @@ const GlobalStyle = createGlobalStyle`
       padding: 0 4px;
     }
   }
-  .runway-marker {
-    .mapboxgl-popup-tip {
-      display: none;
-    }
-    .mapboxgl-popup-content {
-      padding: 4px 0;
-      background: #565656;
-      width: 71px;
-      text-align: center;
-      cursor: pointer;
-    }
-  }
   .map-marker-airport {
     :hover {
       z-index: 999999;
@@ -175,32 +163,19 @@ const MapContainer = styled.div`
 type Props = {
   routeItems: AirportDb[]
   airports: AirportDb[]
-  runways: RunwayDb[]
   onLoad: () => void
   onMapMoveEnd: (bounds: GeographicalBounds) => void,
-  onRequestFlightPlan: (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => void
 }
 
 const Map = ({
   routeItems,
-  runways,
   airports,
   onLoad,
   onMapMoveEnd,
-  // onRequestRunways,
-  onRequestFlightPlan,
 }: Props) => {
   const map = useRef<mapboxgl.Map>()
   const routeItemsMarkersRef = useRef<mapboxgl.Popup[]>([])
-  const runwayMarkersRef = useRef<mapboxgl.Popup[]>([])
   const airportMarkersRef = useRef<mapboxgl.Popup[]>([])
-  const departureAirportRef = useRef<string | null>(null)
-  const destinationAirportRef = useRef<string | null>(null)
-
-  const buildFeatureCollection = (features: any[]): any => ({
-    type: 'FeatureCollection',
-    features,
-  })
 
   const buildGeoJsonLine = (coordinates: number[][] | number[]): any => ({
     type: 'Feature',
@@ -357,64 +332,6 @@ const Map = ({
     map.current.getSource('path').setData(buildGeoJsonLine(setOfArcs))
   }, [routeItems])
 
-  const showRunways = () => {
-    const runwayGeojsonLines = runways.map(runway => buildGeoJsonLine([
-      [runway.primary_lonx, runway.primary_laty],
-      [runway.secondary_lonx, runway.secondary_laty],
-    ]))
-    const runwayBounds = runways.reduce((currentBounds, runway) => currentBounds.extend([runway.primary_lonx, runway.primary_laty])
-      .extend([runway.secondary_lonx, runway.secondary_laty]),
-    new mapboxgl.LngLatBounds([runways[0].primary_lonx, runways[0].primary_laty], [runways[0].secondary_lonx, runways[0].secondary_laty]))
-    map.current?.fitBounds(runwayBounds, { padding: 96 })
-
-    // @ts-ignore
-    map.current?.getSource('runways').setData(buildFeatureCollection(runwayGeojsonLines))
-
-    runwayMarkersRef.current.forEach(m => m.remove())
-    runwayMarkersRef.current = []
-
-    if (!map.current) {
-      return
-    }
-    const generateRunwayMarker = (coords: [number, number], runway: RunwayDb, runwayType: 'primary' | 'secondary') => {
-      const runwayMarker = new mapboxgl.Popup({
-        className: 'runway-marker',
-        closeOnClick: false,
-        closeButton: false,
-        anchor: 'center',
-        maxWidth: 'none',
-      })
-        .setLngLat(coords)
-        .setHTML(`
-          <div class="runway-marker-content">
-            Land here
-          </div>
-        `)
-        .addTo(map.current!)
-      runwayMarker.getElement().addEventListener('click', () => {
-        onRequestFlightPlan(departureAirportRef.current!, destinationAirportRef.current!, runway.runway_id, runwayType)
-      })
-      runwayMarkersRef.current.push(runwayMarker)
-    }
-
-    runways.forEach(runway => {
-      generateRunwayMarker([runway.primary_lonx, runway.primary_laty], runway, 'primary')
-      generateRunwayMarker([runway.secondary_lonx, runway.secondary_laty], runway, 'secondary')
-    })
-  }
-
-  useEffect(() => {
-    if (!runways.length) {
-      // @ts-ignore
-      map.current?.getSource('runways').setData(buildFeatureCollection([]))
-
-      runwayMarkersRef.current.forEach(m => m.remove())
-      runwayMarkersRef.current = []
-      return
-    }
-    showRunways()
-  }, [runways])
-
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2l1b3hpZ2VuIiwiYSI6ImNranN5bHc3bjJtd2cydG1qdTFmNWU4cnAifQ.AN8uW43ZdoGTNWpPkKhPNQ'
     const mapInstance = new mapboxgl.Map({
@@ -443,23 +360,6 @@ const Map = ({
         paint: {
           'line-color': '#3f51b5',
           'line-width': 8,
-        },
-      })
-      mapInstance.addSource('runways', {
-        type: 'geojson',
-        data: buildGeoJsonLine([]),
-      })
-      mapInstance.addLayer({
-        id: 'runways-layer',
-        type: 'line',
-        source: 'runways',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#565656',
-          'line-width': 5,
         },
       })
 

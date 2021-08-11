@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import styled, { css } from 'styled-components'
 import { Tab, Tabs } from '@material-ui/core'
 import useStores from '../stores/useStores'
@@ -7,8 +7,6 @@ import Map from '../modules/Map/Map'
 import RouteConfigForm from '../modules/RouteConfigForm/RouteConfigForm'
 import { ApproachType, GenerateRouteRequestBody } from '../../models/Airport'
 import EditForm from '../modules/EditForm/EditForm'
-import LandHereOptionsForm from '../modules/LandHereOptionsForm/LandHereOptionsForm'
-import { LandHereOptions } from '../../models/UiConfig'
 import { GeographicalBounds } from '../../models/Geography'
 
 const Wrapper = styled.div`
@@ -36,12 +34,10 @@ const Message = styled.div<{ isError?: boolean }>`
 `
 const HomeContainer = () => {
   const { airportStore } = useStores()
-  const [showLandHereOptions, setShowLandHereOptions] = useState(false)
 
   useEffect(() => {
     airportStore.loadRouteConfig()
     airportStore.loadUiConfig()
-    airportStore.loadLandHereOptions()
   }, [])
 
   const handleGenerateRoute = async (config: GenerateRouteRequestBody) => {
@@ -61,16 +57,6 @@ const HomeContainer = () => {
     airportStore.loadAirports(bounds)
   }
 
-  // const handleRequestRunways = (airportIdent: string) => {
-  //   airportStore.loadRunways(airportIdent)
-  //   setShowLandHereOptions(true)
-  // }
-
-  const handleRequestFlightPlan = async (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => {
-    await airportStore.generateFlightPlan(departureIdent, destinationIdent, runwayId, runwayType)
-    setShowLandHereOptions(false)
-  }
-
   const handleEditSubmit = (newCodes: string) => {
     const cleanCodes = newCodes.split('\n').map(str => str.trim()).filter(str => str)
     const uniqueCodes = cleanCodes.reduce((prevValue, currentValue) => {
@@ -87,53 +73,37 @@ const HomeContainer = () => {
     airportStore.saveUiConfig({ ...airportStore.uiConfig, selectedTab: newValue })
   }
 
-  const handleLandHereOptionsSave = (options: LandHereOptions) => {
-    airportStore.saveLandHereOptions(options)
-  }
-
   return (
     <Wrapper>
       <Column style={{ width: '260px' }}>
-        {showLandHereOptions ? (
-          <LandHereOptionsForm
-            onRequestClose={() => { setShowLandHereOptions(false) }}
-            onSave={handleLandHereOptionsSave}
-            landHereOptions={airportStore.landHereOptions}
+        <Tabs
+          value={airportStore.uiConfig.selectedTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+        >
+          <Tab label="Generate" style={{ minWidth: 72 }} />
+          <Tab label="Edit" style={{ minWidth: 72 }} />
+        </Tabs>
+        <div style={{ marginBottom: '32px' }} />
+        {airportStore.uiConfig.selectedTab === 0 ? (
+          <RouteConfigForm
+            routeConfig={airportStore.routeConfig}
+            uiConfig={airportStore.uiConfig}
+            onGenerateClick={handleGenerateRoute}
+            onApproachTypeChange={handleApproachTypeChange}
           />
         ) : (
-          <>
-            <Tabs
-              value={airportStore.uiConfig.selectedTab}
-              onChange={handleTabChange}
-              variant="fullWidth"
-            >
-              <Tab label="Generate" style={{ minWidth: 72 }} />
-              <Tab label="Edit" style={{ minWidth: 72 }} />
-            </Tabs>
-            <div style={{ marginBottom: '32px' }} />
-            {airportStore.uiConfig.selectedTab === 0 ? (
-              <RouteConfigForm
-                routeConfig={airportStore.routeConfig}
-                uiConfig={airportStore.uiConfig}
-                onGenerateClick={handleGenerateRoute}
-                onApproachTypeChange={handleApproachTypeChange}
-              />
-            ) : (
-              <EditForm
-                codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
-                onSubmit={newCodes => { handleEditSubmit(newCodes) }}
-              />
-            )}
-          </>
+          <EditForm
+            codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
+            onSubmit={newCodes => { handleEditSubmit(newCodes) }}
+          />
         )}
       </Column>
       <Column style={{ marginLeft: '32px', flexGrow: 1 }}>
         <Map
           routeItems={airportStore.routeItems}
-          runways={airportStore.runways}
           airports={airportStore.filteredAirports}
           onLoad={handleMapLoad}
-          onRequestFlightPlan={handleRequestFlightPlan}
           onMapMoveEnd={handleMapMoveEnd}
         />
       </Column>

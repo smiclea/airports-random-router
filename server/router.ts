@@ -2,7 +2,6 @@ import express, { Express } from 'express'
 import path from 'path'
 
 import airportApi from './api/airportApi'
-import flightPlanApi from './api/flightPlanApi'
 
 export default (app: Express) => {
   const router = express.Router()
@@ -12,7 +11,6 @@ export default (app: Express) => {
   })
 
   airportApi(router)
-  flightPlanApi(router)
 
   app.use('/api', router)
 
