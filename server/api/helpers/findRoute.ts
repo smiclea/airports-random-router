@@ -27,9 +27,8 @@ export default async (config: {
       return
     }
 
-    const searchAround = async (retryCount?: number): Promise<AirportDb[]> => {
-      const actualRetryCount = retryCount || 0
-      const actualMaxDistance = (config.maxDistance * 1852) + (50 * 1852 * actualRetryCount) // meters
+    const searchAround = async (retryCount: number = 0): Promise<AirportDb[]> => {
+      const actualMaxDistance = (config.maxDistance * 1852) + (50 * 1852 * retryCount) // meters
       if (actualMaxDistance / 1852 >= distanceToEnd) {
         return []
       }
@@ -48,8 +47,8 @@ export default async (config: {
         const saaBearing = turfBearing(foundRoute.geometry.coordinates, saa.geometry.coordinates)
         return !currentRoute.find(r => r.airport_id === saa.airport_id) && saaBearing >= minBearing && saaBearing <= maxBearing
       })
-      if (!searchAroundAirports.length && actualRetryCount < MAX_SEARCH_AROUND_RETRIES) {
-        return searchAround(actualRetryCount + 1)
+      if (!searchAroundAirports.length && retryCount < MAX_SEARCH_AROUND_RETRIES) {
+        return searchAround(retryCount + 1)
       }
       return searchAroundAirports
     }

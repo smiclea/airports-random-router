@@ -2,7 +2,7 @@ import { MongoClient, Db } from 'mongodb'
 import pointInPolygon from '@turf/boolean-point-in-polygon'
 import RegExpUtil from '../../../common/utils/RegExpUtil'
 import {
-  AirportDb, ApproachDb, ApproachType,
+  AirportDb, ApproachType,
 } from '../../../models/Airport'
 import { Country } from '../../../models/Country'
 import env from '../../env'
@@ -17,10 +17,6 @@ class DbManager {
 
   private get airportsCollection() {
     return this.mongoDb.collection<AirportDb>('airports_geojson')
-  }
-
-  private get approachesCollection() {
-    return this.mongoDb.collection<ApproachDb>('approaches')
   }
 
   async connect() {
@@ -61,14 +57,14 @@ class DbManager {
 
   async transformAiportsToGeoJson() {
     console.log('Loading airports, countries and approaches collection...')
-    const [airportsSimple, countriesGeojson, approaches] = await Promise.all([
+    const [airportsRaw, countriesGeojson, approachesRaw] = await Promise.all([
       this.mongoDb.collection('airports').find({}).toArray(),
-      this.mongoDb.collection<any>('countries_geojson').find({}).toArray(),
-      this.mongoDb.collection<ApproachDb>('approaches').find({}).toArray(),
+      this.mongoDb.collection('countries_geojson').find({}).toArray(),
+      this.mongoDb.collection('approaches').find({}).toArray(),
     ])
 
     const approachesAssoc: {[aiportId: number]: string[]} = {}
-    approaches.forEach(app => {
+    approachesRaw.forEach(app => {
       if (approachesAssoc[app.airport_id]) {
         approachesAssoc[app.airport_id].push(app.type)
       } else {
@@ -78,7 +74,7 @@ class DbManager {
 
     const CHECK_PROGESS_EVERY = 5 * 1000
     let lastCheck = new Date().getTime()
-    const airportsGeoJson: AirportDb[] = airportsSimple.map((airportSimple, index) => {
+    const airportsGeoJson: AirportDb[] = airportsRaw.map((airportSimple, index) => {
       const { lonx, laty, ...otherAirportProps } = airportSimple
       let country: Country | null = null
       for (let i = 0; i < countriesGeojson.length; i += 1) {
@@ -88,7 +84,7 @@ class DbManager {
         }
       }
       if (new Date().getTime() - lastCheck >= CHECK_PROGESS_EVERY) {
-        process.stdout.write(`\rProgress: ${((index / airportsSimple.length) * 100).toFixed(2)}% (${index} / ${airportsSimple.length})`)
+        process.stdout.write(`\rProgress: ${((index / airportsRaw.length) * 100).toFixed(2)}% (${index} / ${airportsRaw.length})`)
         lastCheck = new Date().getTime()
       }
 
@@ -115,6 +111,12 @@ class DbManager {
       this.airportsCollection.createIndex({ longest_runway_length: 1 }),
       this.airportsCollection.createIndex({ geometry: '2dsphere' }),
       this.airportsCollection.createIndex({ name: 'text', city: 'text' }),
+    ])
+
+    console.log('Dropping raw airports and approaches collections...')
+    await Promise.all([
+      this.mongoDb.collection('approaches').drop(),
+      this.mongoDb.collection('airports').drop(),
     ])
   }
 

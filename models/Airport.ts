@@ -14,11 +14,6 @@ export type AirportDb = {
   approaches: string[] | null
 }
 
-export type ApproachDb = {
-  airport_id: number
-  type: string
-}
-
 export type ApproachType = 'ils' | 'approach' | 'all'
 
 export type GenerateRouteRequestBody = {
