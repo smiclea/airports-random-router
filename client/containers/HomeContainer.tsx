@@ -49,6 +49,10 @@ const HomeContainer = () => {
     airportStore.saveUiConfig({ ...airportStore.uiConfig, approachType })
   }
 
+  const handleRunwayMinLengthChange = async (runwayMinLength: number) => {
+    airportStore.saveUiConfig({ ...airportStore.uiConfig, runwayMinLength })
+  }
+
   const handleMapLoad = () => {
     airportStore.loadRouteItems()
   }
@@ -91,6 +95,7 @@ const HomeContainer = () => {
             uiConfig={airportStore.uiConfig}
             onGenerateClick={handleGenerateRoute}
             onApproachTypeChange={handleApproachTypeChange}
+            onRunwayMinLengthChange={handleRunwayMinLengthChange}
           />
         ) : (
           <EditForm

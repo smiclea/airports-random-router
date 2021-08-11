@@ -34,7 +34,6 @@ class AirportStore {
     toAirport: '',
     minDistance: 50,
     maxDistance: 250,
-    runwayMinLength: 1001,
     angle: 45,
   }
 
@@ -42,18 +41,26 @@ class AirportStore {
   uiConfig: UiConfig = {
     selectedTab: 0,
     approachType: 'all',
+    runwayMinLength: 1001,
   }
 
   @computed
   get filteredAirports() {
-    return this.allAirports.filter(a => {
+    const filterByApproach = (airport: AirportDb) => {
       if (this.uiConfig.approachType === 'ils') {
-        return a.approaches ? a.approaches.indexOf('ILS') > -1 : false
+        return airport.approaches ? airport.approaches.indexOf('ILS') > -1 : false
       }
       if (this.uiConfig.approachType === 'approach') {
-        return a.approaches?.length
+        return airport.approaches?.length
       }
       return true
+    }
+
+    return this.allAirports.filter(a => {
+      if (!filterByApproach(a)) {
+        return false
+      }
+      return a.longest_runway_length >= this.uiConfig.runwayMinLength
     })
   }
 
@@ -68,7 +75,6 @@ class AirportStore {
       toAirport: storage.toAirport || this.routeConfig.toAirport,
       minDistance: storage.minDistance || this.routeConfig.minDistance,
       maxDistance: storage.maxDistance || this.routeConfig.maxDistance,
-      runwayMinLength: storage.runwayMinLength || this.routeConfig.runwayMinLength,
       angle: storage.angle || this.routeConfig.angle,
     }
   }
@@ -85,6 +91,7 @@ class AirportStore {
     this.uiConfig = {
       selectedTab: storage.selectedTab || this.uiConfig.selectedTab,
       approachType: storage.approachType || this.uiConfig.approachType,
+      runwayMinLength: storage.runwayMinLength || this.uiConfig.runwayMinLength,
     }
   }
 
@@ -142,7 +149,7 @@ class AirportStore {
           to: this.routeConfig.toAirport.trim(),
           minDistance: this.routeConfig.minDistance,
           maxDistance: this.routeConfig.maxDistance,
-          runwayMinLength: this.routeConfig.runwayMinLength,
+          runwayMinLength: this.uiConfig.runwayMinLength,
           angle: this.routeConfig.angle,
           approachType: this.uiConfig.approachType,
         },

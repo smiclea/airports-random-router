@@ -78,6 +78,7 @@ type Props = {
   routeConfig: GenerateRouteRequestBody
   uiConfig: UiConfig
   onApproachTypeChange: (type: ApproachType) => void
+  onRunwayMinLengthChange: (length: number) => void
   onGenerateClick: (config: GenerateRouteRequestBody) => void
 }
 
@@ -85,13 +86,13 @@ const RouteConfigForm = ({
   routeConfig,
   uiConfig,
   onApproachTypeChange,
+  onRunwayMinLengthChange,
   onGenerateClick,
 }: Props) => {
   const [startAirport, setStartAirport] = useState('')
   const [endAirport, setEndAirport] = useState('')
   const [legDistanceMin, setLegDistanceMin] = useState(5)
   const [legDistanceMax, setLegDistanceMax] = useState(50)
-  const [airportSize, setAirportSize] = useState(1001)
   const [bearing, setBearing] = useState(45)
 
   useEffect(() => {
@@ -99,7 +100,6 @@ const RouteConfigForm = ({
     setEndAirport(routeConfig.toAirport)
     setLegDistanceMin(routeConfig.minDistance)
     setLegDistanceMax(routeConfig.maxDistance)
-    setAirportSize(routeConfig.runwayMinLength)
     setBearing(routeConfig.angle)
   }, [routeConfig])
 
@@ -109,7 +109,6 @@ const RouteConfigForm = ({
       toAirport: endAirport,
       maxDistance: legDistanceMax,
       minDistance: legDistanceMin,
-      runwayMinLength: airportSize,
       angle: bearing,
     })
   }
@@ -121,6 +120,52 @@ const RouteConfigForm = ({
 
   return (
     <Wrapper onSubmit={handleSubmit}>
+      <FieldRow>
+        <FieldInputWrapper>
+          <TextField
+            select
+            label="Runway Length"
+            value={uiConfig.runwayMinLength}
+            onChange={e => { onRunwayMinLengthChange(Number(e.target.value)) }}
+            fullWidth
+          >
+            {AIRPORT_SIZES.map(option => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        </FieldInputWrapper>
+      </FieldRow>
+      <FieldRow>
+        <FieldInputWrapper>
+          <FormLabel>Approach</FormLabel>
+          <RadioGroup
+            row
+            name="approachType"
+            value={uiConfig.approachType}
+            onChange={e => {
+              onApproachTypeChange(e.target.value as ApproachType)
+            }}
+          >
+            <FormControlLabel
+              value="ils"
+              control={<Radio />}
+              label="Has ILS"
+            />
+            <FormControlLabel
+              value="approach"
+              control={<Radio />}
+              label="Has approach"
+            />
+            <FormControlLabel
+              value="all"
+              control={<Radio />}
+              label="Doesn't matter"
+            />
+          </RadioGroup>
+        </FieldInputWrapper>
+      </FieldRow>
       <FieldRow>
         <FieldInputWrapper>
           <TextField
@@ -159,52 +204,6 @@ const RouteConfigForm = ({
             value={legDistanceMax}
             onChange={e => { setLegDistanceMax(Number(e.currentTarget.value)) }}
           />
-        </FieldInputWrapper>
-      </FieldRow>
-      <FieldRow>
-        <FieldInputWrapper>
-          <TextField
-            select
-            label="Runway Length"
-            value={airportSize}
-            onChange={e => { setAirportSize(Number(e.target.value)) }}
-            fullWidth
-          >
-            {AIRPORT_SIZES.map(option => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </FieldInputWrapper>
-      </FieldRow>
-      <FieldRow>
-        <FieldInputWrapper>
-          <FormLabel>Approach</FormLabel>
-          <RadioGroup
-            row
-            name="approachType"
-            value={uiConfig.approachType}
-            onChange={e => {
-              onApproachTypeChange(e.target.value as ApproachType)
-            }}
-          >
-            <FormControlLabel
-              value="ils"
-              control={<Radio />}
-              label="Has ILS"
-            />
-            <FormControlLabel
-              value="approach"
-              control={<Radio />}
-              label="Has approach"
-            />
-            <FormControlLabel
-              value="all"
-              control={<Radio />}
-              label="Doesn't matter"
-            />
-          </RadioGroup>
         </FieldInputWrapper>
       </FieldRow>
       <FieldRow>

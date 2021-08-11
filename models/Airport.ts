@@ -26,6 +26,5 @@ export type GenerateRouteRequestBody = {
   toAirport: string
   minDistance: number,
   maxDistance: number,
-  runwayMinLength: number,
   angle: number
 }
