@@ -170,7 +170,7 @@ const RouteConfigForm = ({
         <FieldInputWrapper>
           <TextField
             fullWidth
-            label="Departure"
+            label="Start point"
             value={startAirport}
             onChange={e => { setStartAirport(e.currentTarget.value) }}
             helperText="ICAO or airport name"
@@ -178,7 +178,7 @@ const RouteConfigForm = ({
         </FieldInputWrapper>
         <FieldInputWrapper>
           <TextField
-            label="Arrival"
+            label="End point"
             fullWidth
             value={endAirport}
             onChange={e => { setEndAirport(e.currentTarget.value) }}
