@@ -9,6 +9,7 @@ import { GenerateRouteRequestBody } from '../../models/Airport'
 import EditForm from '../modules/EditForm/EditForm'
 import LandHereOptionsForm from '../modules/LandHereOptionsForm/LandHereOptionsForm'
 import { LandHereOptions } from '../../models/UiConfig'
+import { GeographicalBounds } from '../../models/Geography'
 
 const Wrapper = styled.div`
   padding: 32px;
@@ -50,6 +51,10 @@ const HomeContainer = () => {
 
   const handleMapLoad = () => {
     airportStore.loadRouteItems()
+  }
+
+  const handleMapMoveEnd = (bounds: GeographicalBounds) => {
+    airportStore.loadAirports(bounds)
   }
 
   // const handleRequestRunways = (airportIdent: string) => {
@@ -120,8 +125,10 @@ const HomeContainer = () => {
         <Map
           routeItems={airportStore.routeItems}
           runways={airportStore.runways}
+          airports={airportStore.airports}
           onLoad={handleMapLoad}
           onRequestFlightPlan={handleRequestFlightPlan}
+          onMapMoveEnd={handleMapMoveEnd}
         />
       </Column>
       {airportStore.loadingError ? (

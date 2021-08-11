@@ -7,7 +7,9 @@ import {
 import { ApproachType, GenerateRouteRequestBody } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
 
-const Wrapper = styled.form``
+const Wrapper = styled.form`
+  overflow: hidden auto;
+`
 const FieldRow = styled.div`
   display: flex;
   justify-content: space-between;

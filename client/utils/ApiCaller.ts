@@ -15,6 +15,7 @@ class ApiCaller {
         method: requestConfig.method || 'GET',
         headers: requestConfig.headers || {},
         data: requestConfig.data || null,
+        cancelToken: requestConfig.cancelToken,
       })
       return response.data
     } catch (err) {

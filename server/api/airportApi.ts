@@ -2,6 +2,7 @@ import { Router } from 'express'
 import db from './db'
 import handleError from './helpers/handleError'
 import findRoute from './helpers/findRoute'
+import { GeographicalBounds } from '../../models/Geography'
 
 const airportApi = (router: Router) => {
   router.route('/airports')
@@ -25,6 +26,18 @@ const airportApi = (router: Router) => {
         foundAirports,
         notFoundAirports,
       })
+    })
+
+  router.route('/airports/bounds')
+    .post(async (req, res) => {
+      const { sw, ne } = req.body
+      if (!sw || !ne || !sw.length || !ne.length || sw.length !== 2 || ne.length !== 2) {
+        res.status(500).json({ error: `Incorrect bounds: ${JSON.stringify(req.body)}` })
+        return
+      }
+      const actualBounds: GeographicalBounds = { sw: sw as any, ne: ne as any }
+
+      res.json(await db.getAirportsByBounds(actualBounds))
     })
 
   router.route('/airports/:ident')

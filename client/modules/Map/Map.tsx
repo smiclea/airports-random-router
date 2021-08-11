@@ -8,6 +8,7 @@ import turfBearing from '@turf/bearing'
 
 import { AirportDb, RunwayDb } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
+import { GeographicalBounds } from '../../../models/Geography'
 
 const GlobalStyle = createGlobalStyle`
   .map-marker {
@@ -119,27 +120,78 @@ const GlobalStyle = createGlobalStyle`
       cursor: pointer;
     }
   }
+  .map-marker-airport {
+    :hover {
+      z-index: 999999;
+    }
+    .mapboxgl-popup-tip {
+      display: none;
+    }
+    .mapboxgl-popup-content {
+      background: red;
+      border-radius: 50%;
+      padding: 0;
+      .map-marker-airport-content {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        .map-marker-info {
+          display: none;
+          background: #ff6d00;
+          position: absolute;
+          bottom: calc(100% + 8px);
+          padding: 4px 5px;
+          border-radius: 5px;
+          min-width: 130px;
+          white-space: nowrap;
+          left: -62px;
+          line-height: 10px;
+          font-size: 10px;
+          .map-marker-info-city {
+            font-size: 8px;
+            line-height: 8px;
+            padding-top: 4px;
+            opacity: 0.7;
+          }
+          .map-marker-info-approach {
+            font-size: 8px;
+            line-height: 8px;
+            padding-top: 4px;
+            opacity: 0.7;
+          }
+        }
+        :hover .map-marker-info {
+          display: block;
+        }
+      }
+    }
+  } 
 `
 const MapContainer = styled.div`
   height: 100%;
 `
 type Props = {
   routeItems: AirportDb[]
+  airports: AirportDb[]
   runways: RunwayDb[]
   onLoad: () => void
+  onMapMoveEnd: (bounds: GeographicalBounds) => void,
   onRequestFlightPlan: (departureIdent: string, destinationIdent: string, runwayId: number, runwayType: 'primary' | 'secondary') => void
 }
 
 const Map = ({
   routeItems,
   runways,
+  airports,
   onLoad,
+  onMapMoveEnd,
   // onRequestRunways,
   onRequestFlightPlan,
 }: Props) => {
   const map = useRef<mapboxgl.Map>()
   const routeItemsMarkersRef = useRef<mapboxgl.Popup[]>([])
   const runwayMarkersRef = useRef<mapboxgl.Popup[]>([])
+  const airportMarkersRef = useRef<mapboxgl.Popup[]>([])
   const departureAirportRef = useRef<string | null>(null)
   const destinationAirportRef = useRef<string | null>(null)
 
@@ -157,7 +209,7 @@ const Map = ({
     },
   })
 
-  const showMarkersOnMap = (
+  const showDetailMarkersOnMap = (
     markersToShowOnMap: AirportDb[],
     markersRef: React.MutableRefObject<mapboxgl.Popup[]>,
   ) => {
@@ -222,8 +274,41 @@ const Map = ({
     })
   }
 
+  // Load small airports markers on map
   useEffect(() => {
-    showMarkersOnMap(routeItems, routeItemsMarkersRef)
+    if (!map.current) {
+      return
+    }
+    airportMarkersRef.current.forEach(m => m.remove())
+    airportMarkersRef.current = []
+
+    airports.forEach(airport => {
+      const marker = new mapboxgl.Popup({
+        className: 'map-marker-airport',
+        closeOnClick: false,
+        closeButton: false,
+        anchor: 'center',
+        maxWidth: 'none',
+      })
+        .setLngLat(airport.geometry.coordinates)
+        .setHTML(
+          `<div class="map-marker-airport-content">
+            <div class="map-marker-info">
+              <div class="map-marker-info-name">${airport.ident} - ${airport.name}</div>
+              <div class="map-marker-info-city">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
+              <div class="map-marker-info-approach">${airport.approaches?.join(', ') || ''}</div>
+            </div>
+          <div>
+          `,
+        )
+        .addTo(map.current!)
+
+      airportMarkersRef.current.push(marker)
+    })
+  }, [airports])
+
+  useEffect(() => {
+    showDetailMarkersOnMap(routeItems, routeItemsMarkersRef)
     if (!map.current) {
       return
     }
@@ -378,6 +463,19 @@ const Map = ({
       map.current = mapInstance
 
       onLoad()
+    })
+
+    mapInstance.on('moveend', () => {
+      if (mapInstance.getZoom() < 6) {
+        airportMarkersRef.current.forEach(m => m.remove())
+        airportMarkersRef.current = []
+        return
+      }
+
+      const bounds = mapInstance.getBounds()
+      const sw = bounds.getSouthWest()
+      const ne = bounds.getNorthEast()
+      onMapMoveEnd({ sw: [sw.lng, sw.lat], ne: [ne.lng, ne.lat] })
     })
   }, [])
   return (

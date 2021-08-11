@@ -1,7 +1,9 @@
+import axios, { CancelTokenSource } from 'axios'
 import { action, observable, runInAction } from 'mobx'
 import {
   AirportDb, GenerateFlightPlanRequestBody, GenerateRouteRequestBody, RunwayDb,
 } from '../../models/Airport'
+import { GeographicalBounds } from '../../models/Geography'
 import { LandHereOptions, UiConfig } from '../../models/UiConfig'
 import apiCaller from '../utils/ApiCaller'
 
@@ -46,6 +48,9 @@ class AirportStore {
     cruisingAlt: 26000,
     runwayExt: 5,
   }
+
+  @observable
+  airports: AirportDb[] = []
 
   @action
   loadRouteConfig() {
@@ -98,6 +103,31 @@ class AirportStore {
   @action
   loadRouteItems() {
     this.routeItems = JSON.parse(localStorage.getItem('route-items') || '[]')
+  }
+
+  airportsCancelable: CancelTokenSource | null = null
+
+  @action
+  async loadAirports(bounds: GeographicalBounds) {
+    if (this.airportsCancelable) {
+      this.airportsCancelable.cancel()
+      this.airportsCancelable = null
+    }
+    const cancelTokenSource = axios.CancelToken.source()
+    this.airportsCancelable = cancelTokenSource
+    try {
+      const airports: AirportDb[] = await apiCaller.send({
+        url: '/api/airports/bounds',
+        method: 'POST',
+        cancelToken: cancelTokenSource.token,
+        data: bounds,
+      })
+      runInAction(() => {
+        this.airports = airports
+      })
+    } catch (err) {
+      this.loadingError = `${err.type}: ${err.error.response.data.error}`
+    }
   }
 
   @action

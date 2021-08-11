@@ -6,6 +6,7 @@ import {
 } from '../../../models/Airport'
 import { Country } from '../../../models/Country'
 import env from '../../env'
+import { GeographicalBounds } from '../../../models/Geography'
 
 const DB_NAME = RegExpUtil.matches(/.*\/(.*?)(?:\?|$)/g, env.MONGO_URI || '')[0]
 
@@ -42,6 +43,16 @@ class DbManager {
 
   async getAirportByIdent(ident: string): Promise<AirportDb | null> {
     return this.airportsCollection.findOne({ ident })
+  }
+
+  async getAirportsByBounds(bounds: GeographicalBounds): Promise<AirportDb[]> {
+    return this.airportsCollection.find({
+      geometry: {
+        $geoWithin: {
+          $box: [bounds.sw, bounds.ne],
+        },
+      },
+    }).toArray()
   }
 
   async getAirportsByText(text: string) {
