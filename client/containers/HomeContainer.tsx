@@ -9,26 +9,55 @@ import { ApproachType, GenerateRouteRequestBody } from '../../models/Airport'
 import EditForm from '../modules/EditForm/EditForm'
 import { GeographicalBounds } from '../../models/Geography'
 
+import logoImage from './resources/logo.png'
+
 const Wrapper = styled.div`
-  padding: 32px;
+  padding: 0 16px 16px 16px;
   height: 100%;
-  display: flex;
-  position: relative;
 `
-const Column = styled.div`
+const Header = styled.div`
+  font-size: 20px;
+  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`
+const HeaderAuthor = styled.span`
+  font-size: 10px;
+  margin-bottom: -7px;
+  opacity: 0.4;
+`
+const MapColumn = styled.div`
   position: relative;
   height: 100%;
+  margin-left: 16px;
+  flex-grow: 1;
+`
+const TabsColumn = styled.div`
   display: flex;
   flex-direction: column;
+  width: 260px;
+  margin-top: -55px;
+  height: calc(100% + 55px);
+`
+const Logo = styled.img`
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+`
+const Content = styled.div`
+  height: calc(100% - 60px);
+  display: flex;
+  position: relative;
 `
 const Message = styled.div<{ isError?: boolean }>`
   overflow: auto;
   max-width: 300px;
   ${props => (props.isError ? css`color: #f50057;` : '')}
   position: absolute;
-  left: 338px;
+  top: 10px;
+  left: 290px;
   background: #303030;
-  top: 46px;
   border-radius: 4px;
   padding: 8px 16px;
 `
@@ -79,49 +108,55 @@ const HomeContainer = () => {
 
   return (
     <Wrapper>
-      <Column style={{ width: '260px' }}>
-        <Tabs
-          value={airportStore.uiConfig.selectedTab}
-          onChange={handleTabChange}
-          variant="fullWidth"
-        >
-          <Tab label="Generate" style={{ minWidth: 72 }} />
-          <Tab label="Edit" style={{ minWidth: 72 }} />
-        </Tabs>
-        <div style={{ marginBottom: '32px' }} />
-        {airportStore.uiConfig.selectedTab === 0 ? (
-          <RouteConfigForm
-            routeConfig={airportStore.routeConfig}
-            uiConfig={airportStore.uiConfig}
-            onGenerateClick={handleGenerateRoute}
-            onApproachTypeChange={handleApproachTypeChange}
-            onRunwayMinLengthChange={handleRunwayMinLengthChange}
+      <Header>
+        <Logo src={logoImage} />
+        Airports Random Router&nbsp;<HeaderAuthor>by Sergiu Miclea</HeaderAuthor>
+      </Header>
+      <Content>
+        <TabsColumn>
+          <Tabs
+            value={airportStore.uiConfig.selectedTab}
+            onChange={handleTabChange}
+            variant="fullWidth"
+          >
+            <Tab label="Generate" style={{ minWidth: 72 }} />
+            <Tab label="Edit" style={{ minWidth: 72 }} />
+          </Tabs>
+          <div style={{ marginBottom: '32px' }} />
+          {airportStore.uiConfig.selectedTab === 0 ? (
+            <RouteConfigForm
+              routeConfig={airportStore.routeConfig}
+              uiConfig={airportStore.uiConfig}
+              onGenerateClick={handleGenerateRoute}
+              onApproachTypeChange={handleApproachTypeChange}
+              onRunwayMinLengthChange={handleRunwayMinLengthChange}
+            />
+          ) : (
+            <EditForm
+              codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
+              onSubmit={newCodes => { handleEditSubmit(newCodes) }}
+            />
+          )}
+        </TabsColumn>
+        <MapColumn>
+          <Map
+            routeItems={airportStore.routeItems}
+            airports={airportStore.filteredAirports}
+            onLoad={handleMapLoad}
+            onMapMoveEnd={handleMapMoveEnd}
           />
-        ) : (
-          <EditForm
-            codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
-            onSubmit={newCodes => { handleEditSubmit(newCodes) }}
-          />
-        )}
-      </Column>
-      <Column style={{ marginLeft: '32px', flexGrow: 1 }}>
-        <Map
-          routeItems={airportStore.routeItems}
-          airports={airportStore.filteredAirports}
-          onLoad={handleMapLoad}
-          onMapMoveEnd={handleMapMoveEnd}
-        />
-      </Column>
-      {airportStore.loadingError ? (
-        <Message isError>
-          {airportStore.loadingError}
-        </Message>
-      ) : null}
-      {airportStore.loading ? (
-        <Message>
-          Loading ...
-        </Message>
-      ) : null}
+        </MapColumn>
+        {airportStore.loadingError ? (
+          <Message isError>
+            {airportStore.loadingError}
+          </Message>
+        ) : null}
+        {airportStore.loading ? (
+          <Message>
+            Loading ...
+          </Message>
+        ) : null}
+      </Content>
     </Wrapper>
   )
 }
