@@ -107,6 +107,7 @@ const GlobalStyle = createGlobalStyle`
       background: #3f51b5;
       border-radius: 4px;
       padding: 0 4px;
+      cursor: pointer;
     }
   }
   .runway-marker {
@@ -308,6 +309,7 @@ const Map = ({
     })
   }, [airports])
 
+  // Show route items markers on map
   useEffect(() => {
     showDetailMarkersOnMap(routeItems, routeItemsMarkersRef)
     if (!map.current) {
@@ -342,6 +344,10 @@ const Map = ({
         .setLngLat(halfwayCoords)
         .setHTML(`<div class="distance-marker-content" style="transform: rotate(${bearing}deg);">${distance.toFixed(0)} NM</div>`)
         .addTo(map.current!)
+      marker.getElement().addEventListener('click', () => {
+        const bounds = new mapboxgl.LngLatBounds([startArc[0], startArc[1]], [endArc[0], endArc[1]])
+        map.current?.fitBounds(bounds, { padding: 96 })
+      })
       routeItemsMarkersRef.current.push(marker)
 
       for (let j = 0; j < lineDistance + steps; j += lineDistance / steps) {
