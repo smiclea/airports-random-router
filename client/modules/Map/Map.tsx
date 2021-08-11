@@ -34,10 +34,10 @@ const GlobalStyle = createGlobalStyle`
     }
     &.map-marker-start .mapboxgl-popup-content {
       background: #f50057;
-      cursor: default;
     }
     &.map-marker-end .mapboxgl-popup-content {
       background: rgb(255, 152, 0);
+      cursor: default;
     }
     .map-marker-content {
       display: flex;
@@ -45,6 +45,7 @@ const GlobalStyle = createGlobalStyle`
       align-items: center;
       margin-top: 3px;
       position: relative;
+      cursor: pointer;
       .map-marker-info {
         display: none;
         background: #3f51b5;
@@ -107,7 +108,6 @@ const GlobalStyle = createGlobalStyle`
       background: #3f51b5;
       border-radius: 4px;
       padding: 0 4px;
-      cursor: pointer;
     }
   }
   .runway-marker {
@@ -264,13 +264,12 @@ const Map = ({
         )
         .addTo(map.current!)
 
-      // if (i > 0) {
-      //   marker.getElement().addEventListener('click', () => {
-      //     onRequestRunways(routeItem.ident)
-      //     departureAirportRef.current = markersToShowOnMap[i - 1].ident
-      //     destinationAirportRef.current = routeItem.ident
-      //   })
-      // }
+      marker.getElement().addEventListener('click', () => {
+        const currentMarker = markersToShowOnMap[i].geometry.coordinates
+        const nextMarker = markersToShowOnMap[i === markersToShowOnMap.length - 1 ? i - 1 : i + 1].geometry.coordinates
+        const markersBounds = new mapboxgl.LngLatBounds([currentMarker[0], currentMarker[1]], [nextMarker[0], nextMarker[1]])
+        map.current?.fitBounds(markersBounds, { padding: 96 })
+      })
 
       markersRef.current.push(marker)
     })
@@ -344,10 +343,7 @@ const Map = ({
         .setLngLat(halfwayCoords)
         .setHTML(`<div class="distance-marker-content" style="transform: rotate(${bearing}deg);">${distance.toFixed(0)} NM</div>`)
         .addTo(map.current!)
-      marker.getElement().addEventListener('click', () => {
-        const bounds = new mapboxgl.LngLatBounds([startArc[0], startArc[1]], [endArc[0], endArc[1]])
-        map.current?.fitBounds(bounds, { padding: 96 })
-      })
+
       routeItemsMarkersRef.current.push(marker)
 
       for (let j = 0; j < lineDistance + steps; j += lineDistance / steps) {
