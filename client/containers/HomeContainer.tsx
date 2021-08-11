@@ -50,7 +50,7 @@ const HomeContainer = () => {
   }
 
   const handleApproachTypeChange = async (approachType: ApproachType) => {
-    airportStore.saveConfig({ ...airportStore.routeConfig, approachType })
+    airportStore.saveUiConfig({ ...airportStore.uiConfig, approachType })
   }
 
   const handleMapLoad = () => {
@@ -84,7 +84,7 @@ const HomeContainer = () => {
   }
 
   const handleTabChange = (e: React.ChangeEvent<{}>, newValue: number) => {
-    airportStore.saveUiConfig({ selectedTab: newValue })
+    airportStore.saveUiConfig({ ...airportStore.uiConfig, selectedTab: newValue })
   }
 
   const handleLandHereOptionsSave = (options: LandHereOptions) => {
@@ -113,7 +113,8 @@ const HomeContainer = () => {
             <div style={{ marginBottom: '32px' }} />
             {airportStore.uiConfig.selectedTab === 0 ? (
               <RouteConfigForm
-                config={airportStore.routeConfig}
+                routeConfig={airportStore.routeConfig}
+                uiConfig={airportStore.uiConfig}
                 onGenerateClick={handleGenerateRoute}
                 onApproachTypeChange={handleApproachTypeChange}
               />

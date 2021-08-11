@@ -6,6 +6,7 @@ import {
 } from '@material-ui/core'
 import { ApproachType, GenerateRouteRequestBody } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
+import { UiConfig } from '../../../models/UiConfig'
 
 const Wrapper = styled.form`
   overflow: hidden auto;
@@ -74,13 +75,15 @@ const AIRPORT_SIZES = [
 ]
 
 type Props = {
-  config: GenerateRouteRequestBody
+  routeConfig: GenerateRouteRequestBody
+  uiConfig: UiConfig
   onApproachTypeChange: (type: ApproachType) => void
   onGenerateClick: (config: GenerateRouteRequestBody) => void
 }
 
 const RouteConfigForm = ({
-  config,
+  routeConfig,
+  uiConfig,
   onApproachTypeChange,
   onGenerateClick,
 }: Props) => {
@@ -90,17 +93,15 @@ const RouteConfigForm = ({
   const [legDistanceMax, setLegDistanceMax] = useState(50)
   const [airportSize, setAirportSize] = useState(1001)
   const [bearing, setBearing] = useState(45)
-  const [approachType, setApproachType] = useState<ApproachType>('all')
 
   useEffect(() => {
-    setStartAirport(config.fromAirport)
-    setEndAirport(config.toAirport)
-    setLegDistanceMin(config.minDistance)
-    setLegDistanceMax(config.maxDistance)
-    setAirportSize(config.runwayMinLength)
-    setBearing(config.angle)
-    setApproachType(config.approachType)
-  }, [config])
+    setStartAirport(routeConfig.fromAirport)
+    setEndAirport(routeConfig.toAirport)
+    setLegDistanceMin(routeConfig.minDistance)
+    setLegDistanceMax(routeConfig.maxDistance)
+    setAirportSize(routeConfig.runwayMinLength)
+    setBearing(routeConfig.angle)
+  }, [routeConfig])
 
   const handleGenerateClick = () => {
     onGenerateClick({
@@ -110,7 +111,6 @@ const RouteConfigForm = ({
       minDistance: legDistanceMin,
       runwayMinLength: airportSize,
       angle: bearing,
-      approachType,
     })
   }
 
@@ -184,9 +184,8 @@ const RouteConfigForm = ({
           <RadioGroup
             row
             name="approachType"
-            value={approachType}
+            value={uiConfig.approachType}
             onChange={e => {
-              setApproachType(e.target.value as ApproachType)
               onApproachTypeChange(e.target.value as ApproachType)
             }}
           >

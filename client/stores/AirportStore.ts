@@ -39,11 +39,13 @@ class AirportStore {
     maxDistance: 250,
     runwayMinLength: 1001,
     angle: 45,
-    approachType: 'all',
   }
 
   @observable
-  uiConfig: UiConfig = { selectedTab: 0 }
+  uiConfig: UiConfig = {
+    selectedTab: 0,
+    approachType: 'all',
+  }
 
   @observable
   landHereOptions: LandHereOptions = {
@@ -54,10 +56,10 @@ class AirportStore {
   @computed
   get filteredAirports() {
     return this.allAirports.filter(a => {
-      if (this.routeConfig.approachType === 'ils') {
+      if (this.uiConfig.approachType === 'ils') {
         return a.approaches ? a.approaches.indexOf('ILS') > -1 : false
       }
-      if (this.routeConfig.approachType === 'approach') {
+      if (this.uiConfig.approachType === 'approach') {
         return a.approaches?.length
       }
       return true
@@ -77,7 +79,6 @@ class AirportStore {
       maxDistance: storage.maxDistance || this.routeConfig.maxDistance,
       runwayMinLength: storage.runwayMinLength || this.routeConfig.runwayMinLength,
       angle: storage.angle || this.routeConfig.angle,
-      approachType: storage.approachType || this.routeConfig.approachType,
     }
   }
 
@@ -90,7 +91,10 @@ class AirportStore {
   @action
   loadUiConfig() {
     const storage = JSON.parse(localStorage.getItem('ui-config') || '{}')
-    this.uiConfig = { selectedTab: storage.selectedTab || this.uiConfig.selectedTab }
+    this.uiConfig = {
+      selectedTab: storage.selectedTab || this.uiConfig.selectedTab,
+      approachType: storage.approachType || this.uiConfig.approachType,
+    }
   }
 
   @action
@@ -162,7 +166,7 @@ class AirportStore {
           maxDistance: this.routeConfig.maxDistance,
           runwayMinLength: this.routeConfig.runwayMinLength,
           angle: this.routeConfig.angle,
-          approachType: this.routeConfig.approachType,
+          approachType: this.uiConfig.approachType,
         },
       })
       runInAction(() => {

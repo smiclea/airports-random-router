@@ -28,7 +28,6 @@ export type GenerateRouteRequestBody = {
   maxDistance: number,
   runwayMinLength: number,
   angle: number
-  approachType: ApproachType
 }
 
 export type RunwayDb = {
