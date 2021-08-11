@@ -114,7 +114,8 @@ const GlobalStyle = createGlobalStyle`
       display: none;
     }
     .mapboxgl-popup-content {
-      background: red;
+      background: #3f51b5;
+      border: 1px solid black;
       border-radius: 50%;
       padding: 0;
       .map-marker-airport-content {
@@ -123,7 +124,7 @@ const GlobalStyle = createGlobalStyle`
         height: 8px;
         .map-marker-info {
           display: none;
-          background: #ff6d00;
+          background: #3f51b5;
           position: absolute;
           bottom: calc(100% + 8px);
           padding: 4px 5px;
