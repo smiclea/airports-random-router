@@ -1,5 +1,7 @@
 import axios, { CancelTokenSource } from 'axios'
-import { action, observable, runInAction } from 'mobx'
+import {
+  action, computed, observable, runInAction,
+} from 'mobx'
 import {
   AirportDb, GenerateFlightPlanRequestBody, GenerateRouteRequestBody, RunwayDb,
 } from '../../models/Airport'
@@ -49,8 +51,21 @@ class AirportStore {
     runwayExt: 5,
   }
 
+  @computed
+  get filteredAirports() {
+    return this.allAirports.filter(a => {
+      if (this.routeConfig.approachType === 'ils') {
+        return a.approaches ? a.approaches.indexOf('ILS') > -1 : false
+      }
+      if (this.routeConfig.approachType === 'approach') {
+        return a.approaches?.length
+      }
+      return true
+    })
+  }
+
   @observable
-  airports: AirportDb[] = []
+  allAirports: AirportDb[] = []
 
   @action
   loadRouteConfig() {
@@ -123,7 +138,7 @@ class AirportStore {
         data: bounds,
       })
       runInAction(() => {
-        this.airports = airports
+        this.allAirports = airports
       })
     } catch (err) {
       this.loadingError = `${err.type}: ${err.error.response.data.error}`

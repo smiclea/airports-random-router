@@ -5,7 +5,7 @@ import { Tab, Tabs } from '@material-ui/core'
 import useStores from '../stores/useStores'
 import Map from '../modules/Map/Map'
 import RouteConfigForm from '../modules/RouteConfigForm/RouteConfigForm'
-import { GenerateRouteRequestBody } from '../../models/Airport'
+import { ApproachType, GenerateRouteRequestBody } from '../../models/Airport'
 import EditForm from '../modules/EditForm/EditForm'
 import LandHereOptionsForm from '../modules/LandHereOptionsForm/LandHereOptionsForm'
 import { LandHereOptions } from '../../models/UiConfig'
@@ -47,6 +47,10 @@ const HomeContainer = () => {
   const handleGenerateRoute = async (config: GenerateRouteRequestBody) => {
     airportStore.saveConfig(config)
     await airportStore.generateRoute()
+  }
+
+  const handleApproachTypeChange = async (approachType: ApproachType) => {
+    airportStore.saveConfig({ ...airportStore.routeConfig, approachType })
   }
 
   const handleMapLoad = () => {
@@ -111,6 +115,7 @@ const HomeContainer = () => {
               <RouteConfigForm
                 config={airportStore.routeConfig}
                 onGenerateClick={handleGenerateRoute}
+                onApproachTypeChange={handleApproachTypeChange}
               />
             ) : (
               <EditForm
@@ -125,7 +130,7 @@ const HomeContainer = () => {
         <Map
           routeItems={airportStore.routeItems}
           runways={airportStore.runways}
-          airports={airportStore.airports}
+          airports={airportStore.filteredAirports}
           onLoad={handleMapLoad}
           onRequestFlightPlan={handleRequestFlightPlan}
           onMapMoveEnd={handleMapMoveEnd}

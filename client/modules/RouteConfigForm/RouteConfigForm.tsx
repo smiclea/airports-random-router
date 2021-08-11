@@ -75,11 +75,13 @@ const AIRPORT_SIZES = [
 
 type Props = {
   config: GenerateRouteRequestBody
+  onApproachTypeChange: (type: ApproachType) => void
   onGenerateClick: (config: GenerateRouteRequestBody) => void
 }
 
 const RouteConfigForm = ({
   config,
+  onApproachTypeChange,
   onGenerateClick,
 }: Props) => {
   const [startAirport, setStartAirport] = useState('')
@@ -183,7 +185,10 @@ const RouteConfigForm = ({
             row
             name="approachType"
             value={approachType}
-            onChange={e => { setApproachType(e.target.value as ApproachType) }}
+            onChange={e => {
+              setApproachType(e.target.value as ApproachType)
+              onApproachTypeChange(e.target.value as ApproachType)
+            }}
           >
             <FormControlLabel
               value="ils"

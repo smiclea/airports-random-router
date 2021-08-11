@@ -36,8 +36,6 @@ SELECT airport_id, ident, name, city, lonx, laty, altitude, longest_runway_lengt
 
 * Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection airports --type csv --headerline --file airports.csv`
 
-* The indexes for `airports` collection are created in the last step (`yarn transform-airports`)
-
 ## Import Approaches
 
 * Run:
@@ -60,7 +58,11 @@ SELECT airport_id, type FROM approach GROUP BY airport_id, type;
 
 * Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection approaches --type csv --headerline --file approaches.csv`
 
-## Import Runways (optional step)
+## Create GeoJSON Data
+
+* Run `yarn transform-airports`
+
+## Import Runways (deprecated step)
 
 * Run:
 
@@ -83,7 +85,3 @@ SELECT runway_id, airport_id, length, heading, primary_lonx, primary_laty, secon
 * Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection runways --type csv --headerline --file runways.csv`
 
 * Create indexes: airport_id, runway_id
-
-## Create GeoJSON Data
-
-* Run `yarn transform-airports`

@@ -94,6 +94,7 @@ const GlobalStyle = createGlobalStyle`
     }
   }
   .distance-marker {
+    z-index: 1;
     .mapboxgl-popup-tip {
       display: none;
     }
