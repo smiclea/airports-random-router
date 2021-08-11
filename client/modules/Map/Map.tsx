@@ -55,11 +55,7 @@ const GlobalStyle = createGlobalStyle`
         border-radius: 5px;
         min-width: 130px;
         white-space: nowrap;
-        .map-marker-info-city {
-          font-size: 10px;
-          opacity: 0.7;
-        }
-        .map-marker-info-approach {
+        .map-marker-info-small {
           font-size: 10px;
           opacity: 0.7;
         }
@@ -137,13 +133,7 @@ const GlobalStyle = createGlobalStyle`
           left: -62px;
           line-height: 10px;
           font-size: 10px;
-          .map-marker-info-city {
-            font-size: 8px;
-            line-height: 8px;
-            padding-top: 4px;
-            opacity: 0.7;
-          }
-          .map-marker-info-approach {
+          .map-marker-info-small {
             font-size: 8px;
             line-height: 8px;
             padding-top: 4px;
@@ -215,8 +205,8 @@ const Map = ({
       const infoTemplate = `
         <div class="map-marker-info">
           <div class="map-marker-info-name">${routeItem.name}</div>
-          <div class="map-marker-info-city">${[routeItem.city, routeItem.countryName].filter(Boolean).join(', ')}</div>
-          <div class="map-marker-info-approach">${routeItem.approaches?.join(', ') || ''}</div>
+          <div class="map-marker-info-small">${[routeItem.city, routeItem.countryName].filter(Boolean).join(', ')}</div>
+          <div class="map-marker-info-small">${routeItem.approaches?.join(', ') || ''}</div>
         </div>
       `
       const marker = new mapboxgl.Popup({
@@ -271,8 +261,9 @@ const Map = ({
           `<div class="map-marker-airport-content">
             <div class="map-marker-info">
               <div class="map-marker-info-name">${airport.ident} - ${airport.name}</div>
-              <div class="map-marker-info-city">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
-              <div class="map-marker-info-approach">${airport.approaches?.join(', ') || ''}</div>
+              <div class="map-marker-info-small">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
+              <div class="map-marker-info-small">Runway: ${airport.longest_runway_length}ft, Altitude: ${airport.altitude}ft</div>
+              <div class="map-marker-info-small">${airport.approaches?.join(', ') || ''}</div>
             </div>
           <div>
           `,
