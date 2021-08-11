@@ -31,6 +31,7 @@ const EditForm = ({ codes, onSubmit }: Props) => {
         fullWidth
         value={currentCodes}
         onChange={e => { setCurrentCodes(e.currentTarget.value) }}
+        helperText="Here you can  input your own route (new line separated) or edit the generated one."
       />
       <Button
         onClick={() => {
