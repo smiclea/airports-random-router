@@ -97,7 +97,7 @@ const Map = ({
         airportHoverPopupRef.current.remove()
         airportHoverPopupRef.current = null
       }
-      airportHoverPopupRef.current = MapUtils.showAirportHoverPopup(mapInstance, e.features[0].properties as any)
+      airportHoverPopupRef.current = MapUtils.showAirportHoverPopup(mapInstance, e.lngLat, e.features[0].properties as any)
     })
   }, [])
   return (

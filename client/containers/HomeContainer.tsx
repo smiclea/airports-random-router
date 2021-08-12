@@ -133,7 +133,7 @@ const HomeContainer = () => {
             />
           ) : (
             <EditForm
-              codes={airportStore.routeItems.map(airport => airport.ident).join('\n')}
+              codes={airportStore.routeItems.map(airport => airport.properties.ident).join('\n')}
               onSubmit={newCodes => { handleEditSubmit(newCodes) }}
             />
           )}

@@ -67,18 +67,19 @@ class MapUtils {
     map.fitBounds(bounds, { padding: 96 })
 
     airports.forEach((airport, i) => {
-      const bulletString = getAirportSize(airport.longest_runway_length)
+      const bulletString = getAirportSize(airport.properties.longest_runway_length)
       const markerClassName = i === 0 ? ' map-marker-start' : i === airports.length - 1 ? ' map-marker-end' : ''
-      const countryTemplate = airport.countryCode ? `
+      const countryTemplate = airport.properties.countryCode ? `
         <div class="map-marker-country">
-          <img width="16px" height="16px" src="/flags/${airport.countryCode}.svg" title="${airport.countryName}" />${airport.countryCode}
+          <img width="16px" height="16px" src="/flags/${airport.properties.countryCode}.svg"
+           title="${airport.properties.countryName}" />${airport.properties.countryCode}
         </div>
       ` : ''
       const infoTemplate = `
         <div class="map-marker-info">
-          <div class="map-marker-info-name">${airport.name}</div>
-          <div class="map-marker-info-small">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
-          <div class="map-marker-info-small">${airport.approaches?.join(', ') || ''}</div>
+          <div class="map-marker-info-name">${airport.properties.name}</div>
+          <div class="map-marker-info-small">${[airport.properties.city, airport.properties.countryName].filter(Boolean).join(', ')}</div>
+          <div class="map-marker-info-small">${airport.properties.approaches?.join(', ') || ''}</div>
         </div>
       `
       const marker = new mapboxgl.Popup({
@@ -92,8 +93,8 @@ class MapUtils {
         .setHTML(
           `<div class="map-marker-content">
             ${infoTemplate}
-            <div class="map-marker-altitude">${airport.altitude}ft</div>
-            <div class="map-marker-ident">${airport.ident}</div>
+            <div class="map-marker-altitude">${airport.properties.altitude}ft</div>
+            <div class="map-marker-ident">${airport.properties.ident}</div>
             <div class="map-marker-size">${bulletString || '<span style="opacity: 0;">E</span>'}</div>
           <div>
           ${countryTemplate}
@@ -115,17 +116,13 @@ class MapUtils {
   static addAirportsMarkers(map: Map, airports: AirportDb[]) {
     const geoJson: any = {
       type: 'FeatureCollection',
-      features: airports.map(airport => ({
-        type: 'Feature',
-        properties: airport,
-        geometry: airport.geometry,
-      })),
+      features: airports,
     }
     const airportsSource: any = map.getSource('airports')
     airportsSource.setData(geoJson)
   }
 
-  static showAirportHoverPopup(map: Map, airport: AirportDb) {
+  static showAirportHoverPopup(map: Map, coordinates: mapboxgl.LngLatLike, properties: AirportDb['properties']) {
     const popup = new mapboxgl.Popup({
       className: 'map-marker-airport',
       closeOnClick: false,
@@ -133,13 +130,14 @@ class MapUtils {
       anchor: 'center',
       maxWidth: 'none',
     })
-      .setLngLat(JSON.parse(airport.geometry as any).coordinates)
+      .setLngLat(coordinates)
       .setHTML(
         `<div class="map-marker-info">
-          <div class="map-marker-info-name">${airport.ident} - ${airport.name}</div>
-          <div class="map-marker-info-small">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
-          <div class="map-marker-info-small">Runway: ${airport.longest_runway_length}ft, Altitude: ${airport.altitude}ft</div>
-          <div class="map-marker-info-small">${JSON.parse(airport.approaches as any)?.join(', ') || ''}</div>
+          <div class="map-marker-info-name">${properties.ident} - ${properties.name}</div>
+          <div class="map-marker-info-small">${[properties.city, properties.countryName].filter(Boolean).join(', ')}</div>
+          <div class="map-marker-info-small">Runway: ${properties.longest_runway_length}ft, 
+          Altitude: ${properties.altitude}ft</div>
+          <div class="map-marker-info-small">${JSON.parse(properties.approaches as any)?.join(', ') || ''}</div>
         </div>`,
       )
       .addTo(map)

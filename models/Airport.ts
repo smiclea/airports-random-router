@@ -1,17 +1,20 @@
 export type AirportDb = {
-  airport_id: number
-  ident: string
-  name: string
-  city: string | null
+  type: 'Feature',
+  properties: {
+    airport_id: number
+    ident: string
+    name: string
+    city: string | null
+    altitude: number
+    longest_runway_length: number
+    countryCode: string | null
+    countryName: string
+    approaches: string[] | null
+  },
   geometry: {
     type: 'Point'
     coordinates: [number, number]
   }
-  altitude: number
-  longest_runway_length: number
-  countryCode: string | null
-  countryName: string
-  approaches: string[] | null
 }
 
 export type ApproachType = 'ils' | 'approach' | 'all'

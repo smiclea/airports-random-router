@@ -32,8 +32,6 @@ SELECT airport_id, ident, name, city, lonx, laty, altitude, longest_runway_lengt
 
 * Download [MongoDB Tools](https://www.mongodb.com/try/download/database-tools)
 
-* Drop the old 'airports' collection
-
 * Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection airports --type csv --headerline --file airports.csv`
 
 ## Import Approaches

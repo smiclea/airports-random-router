@@ -34,7 +34,7 @@ class DbManager {
   }
 
   async getAirportByIdent(ident: string): Promise<AirportDb | null> {
-    return this.airportsCollection.findOne({ ident })
+    return this.airportsCollection.findOne({ 'properties.ident': ident })
   }
 
   async getAirportsByBounds(bounds: GeographicalBounds): Promise<AirportDb[]> {
@@ -48,11 +48,11 @@ class DbManager {
   }
 
   async getAirportsByText(text: string) {
-    return this.airportsCollection.find({ $text: { $search: `"${text}"` } }).sort({ longest_runway_length: -1 }).toArray()
+    return this.airportsCollection.find({ $text: { $search: `"${text}"` } }).sort({ 'properties.longest_runway_length': -1 }).toArray()
   }
 
   async getAirportById(id: number): Promise<AirportDb | null> {
-    return this.airportsCollection.findOne({ airport_id: id })
+    return this.airportsCollection.findOne({ 'properties.airport_id': id })
   }
 
   async transformAiportsToGeoJson() {
@@ -63,6 +63,7 @@ class DbManager {
       this.mongoDb.collection('approaches').find({}).toArray(),
     ])
 
+    console.log('Building approaches associative array...')
     const approachesAssoc: {[aiportId: number]: string[]} = {}
     approachesRaw.forEach(app => {
       if (approachesAssoc[app.airport_id]) {
@@ -72,6 +73,7 @@ class DbManager {
       }
     })
 
+    console.log('Starting transformation...')
     const CHECK_PROGESS_EVERY = 5 * 1000
     let lastCheck = new Date().getTime()
     const airportsGeoJson: AirportDb[] = airportsRaw.map((airportSimple, index) => {
@@ -89,35 +91,39 @@ class DbManager {
       }
 
       return {
-        ...otherAirportProps,
-        geometry: {
-          type: 'Point',
-          coordinates: [lonx, laty],
+        type: 'Feature',
+        properties: {
+          ...otherAirportProps,
+          countryCode: country?.ISO_A2 || country?.ADMIN || null,
+          countryName: country?.ADMIN || 'Unknown',
+          approaches: approachesAssoc[airportSimple.airport_id],
         },
-        countryCode: country?.ISO_A2 || country?.ADMIN || null,
-        countryName: country?.ADMIN || 'Unknown',
-        approaches: approachesAssoc[airportSimple.airport_id],
+        geometry: { type: 'Point', coordinates: [lonx, laty] },
       }
     })
 
-    console.log('\nDroping airports GeoJSON collection...')
-    await this.airportsCollection.drop()
-    console.log('Inserting the airports GeoJSON...')
+    console.log('\nDroping the airports GeoJSON collection...')
+    try {
+      await this.airportsCollection.drop()
+    } catch (err) { console.log(err) }
+    console.log('Inserting into the airports GeoJSON collection...')
     await this.airportsCollection.insertMany(airportsGeoJson)
-    console.log('Creating airports GeoJSON indexes...')
+    console.log('Creating the airports GeoJSON indexes...')
     await Promise.all([
-      this.airportsCollection.createIndex({ ident: 1 }),
-      this.airportsCollection.createIndex({ airport_id: 1 }),
-      this.airportsCollection.createIndex({ longest_runway_length: 1 }),
+      this.airportsCollection.createIndex({ 'properties.ident': 1 }),
+      this.airportsCollection.createIndex({ 'properties.airport_id': 1 }),
+      this.airportsCollection.createIndex({ 'properties.longest_runway_length': 1 }),
       this.airportsCollection.createIndex({ geometry: '2dsphere' }),
-      this.airportsCollection.createIndex({ name: 'text', city: 'text' }),
+      this.airportsCollection.createIndex({ 'properties.name': 'text', 'properties.city': 'text' }),
     ])
 
     console.log('Dropping raw airports and approaches collections...')
-    await Promise.all([
-      this.mongoDb.collection('approaches').drop(),
-      this.mongoDb.collection('airports').drop(),
-    ])
+    try {
+      await Promise.all([
+        this.mongoDb.collection('approaches').drop(),
+        this.mongoDb.collection('airports').drop(),
+      ])
+    } catch (err) { console.log(err) }
   }
 
   async searchAround(
@@ -141,20 +147,20 @@ class DbManager {
           },
         },
         {
-          airport_id: { $ne: airport.airport_id },
+          'properties.airport_id': { $ne: airport.properties.airport_id },
         },
         {
-          longest_runway_length: { $gte: minRunwayLength },
+          'properties.longest_runway_length': { $gte: minRunwayLength },
         },
       ],
     }).toArray()
 
     return airports.filter(air => {
       if (approachType === 'ils') {
-        return air.approaches?.find(app => app === 'ILS')
+        return air.properties.approaches?.find(app => app === 'ILS')
       }
       if (approachType === 'approach') {
-        return air.approaches?.length
+        return air.properties.approaches?.length
       }
       return true
     })

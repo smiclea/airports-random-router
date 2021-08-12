@@ -48,10 +48,10 @@ class AirportStore {
   get filteredAirports() {
     const filterByApproach = (airport: AirportDb) => {
       if (this.uiConfig.approachType === 'ils') {
-        return airport.approaches ? airport.approaches.indexOf('ILS') > -1 : false
+        return airport.properties.approaches ? airport.properties.approaches.indexOf('ILS') > -1 : false
       }
       if (this.uiConfig.approachType === 'approach') {
-        return airport.approaches?.length
+        return airport.properties.approaches?.length
       }
       return true
     }
@@ -60,7 +60,7 @@ class AirportStore {
       if (!filterByApproach(a)) {
         return false
       }
-      return a.longest_runway_length >= this.uiConfig.runwayMinLength
+      return a.properties.longest_runway_length >= this.uiConfig.runwayMinLength
     })
   }
 

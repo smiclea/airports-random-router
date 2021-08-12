@@ -21,7 +21,7 @@ export default async (config: {
     currentRoute.push(foundRoute)
     const distanceToEnd = turfDistance(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates) * 0.539957 // NM
     if (distanceToEnd <= config.maxDistance || currentRoute.length === ROUTE_LIMIT) {
-      if (foundRoute.airport_id !== config.toAirport.airport_id) {
+      if (foundRoute.properties.airport_id !== config.toAirport.properties.airport_id) {
         currentRoute.push(config.toAirport)
       }
       return
@@ -45,7 +45,7 @@ export default async (config: {
       const maxBearing = foundRouteBearing + config.angle
       searchAroundAirports = searchAroundAirports.filter(saa => {
         const saaBearing = turfBearing(foundRoute.geometry.coordinates, saa.geometry.coordinates)
-        return !currentRoute.find(r => r.airport_id === saa.airport_id) && saaBearing >= minBearing && saaBearing <= maxBearing
+        return !currentRoute.find(r => r.properties.airport_id === saa.properties.airport_id) && saaBearing >= minBearing && saaBearing <= maxBearing
       })
       if (!searchAroundAirports.length && retryCount < MAX_SEARCH_AROUND_RETRIES) {
         return searchAround(retryCount + 1)
