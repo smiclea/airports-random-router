@@ -1,156 +1,16 @@
 import React, { useEffect, useRef } from 'react'
-import styled, { createGlobalStyle } from 'styled-components'
+import styled from 'styled-components'
 import mapboxgl from 'mapbox-gl'
-import turfLength from '@turf/length'
-import turfDistance from '@turf/distance'
-import turfAlong from '@turf/along'
-import turfBearing from '@turf/bearing'
 
 import { AirportDb } from '../../../models/Airport'
-import { getAirportSize } from '../../stores/AirportStore'
 import { GeographicalBounds } from '../../../models/Geography'
+import MapStyle from './MapStyle'
+import MapUtils from './MapUtils'
 
-const GlobalStyle = createGlobalStyle`
-  .map-marker {
-    z-index: 99999;
-    :hover {
-      z-index: 999999;
-    }
-
-    .mapboxgl-popup-tip {
-      display: none;
-    }
-    .mapboxgl-popup-content {
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      font-weight: bold;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding-top: 16px;
-      background: #3f51b5;
-      cursor: default;
-    }
-    &.map-marker-start .mapboxgl-popup-content {
-      background: #f50057;
-    }
-    &.map-marker-end .mapboxgl-popup-content {
-      background: rgb(255, 152, 0);
-      cursor: default;
-    }
-    .map-marker-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 3px;
-      position: relative;
-      cursor: pointer;
-      .map-marker-info {
-        display: none;
-        background: #3f51b5;
-        position: absolute;
-        bottom: calc(100% + 8px);
-        padding: 4px 5px;
-        border-radius: 5px;
-        min-width: 130px;
-        white-space: nowrap;
-        .map-marker-info-small {
-          font-size: 10px;
-          opacity: 0.7;
-        }
-      }
-      :hover .map-marker-info {
-        display: block;
-      }
-      .map-marker-altitude {
-        font-size: 9px;
-        margin-bottom: -9px;
-      }
-      .map-marker-ident {
-        margin-bottom: -10px;
-      }
-      .map-marker-size {
-        letter-spacing: 2px;
-        margin-left: 1px;
-      }
-    }
-    .map-marker-country {
-      display: flex;
-      align-items: center;
-      background: #3f51b5;
-      position: absolute;
-      bottom: -20px;
-      left: -5px;
-      padding: 0px 4px;
-      border-radius: 3px;
-
-      img {
-        margin-right: 4px;
-      }
-    }
-  }
-  .distance-marker {
-    z-index: 1;
-    .mapboxgl-popup-tip {
-      display: none;
-    }
-    .mapboxgl-popup-content {
-      padding: 0;
-      background: transparent;
-      box-shadow: none;
-    }
-    .distance-marker-content { 
-      background: #3f51b5;
-      border-radius: 4px;
-      padding: 0 4px;
-    }
-  }
-  .map-marker-airport {
-    :hover {
-      z-index: 999999;
-    }
-    .mapboxgl-popup-tip {
-      display: none;
-    }
-    .mapboxgl-popup-content {
-      background: #3f51b5;
-      border: 1px solid black;
-      border-radius: 50%;
-      padding: 0;
-      .map-marker-airport-content {
-        position: relative;
-        width: 8px;
-        height: 8px;
-        .map-marker-info {
-          display: none;
-          background: #3f51b5;
-          position: absolute;
-          bottom: calc(100% + 8px);
-          padding: 4px 5px;
-          border-radius: 5px;
-          min-width: 130px;
-          white-space: nowrap;
-          left: -62px;
-          line-height: 10px;
-          font-size: 10px;
-          .map-marker-info-small {
-            font-size: 8px;
-            line-height: 8px;
-            padding-top: 4px;
-            opacity: 0.7;
-          }
-        }
-        :hover .map-marker-info {
-          display: block;
-        }
-      }
-    }
-  } 
-`
 const MapContainer = styled.div`
   height: 100%;
 `
+const MAP_AIRPORTS_ZOOM_LIMIT = 6
 type Props = {
   routeItems: AirportDb[]
   airports: AirportDb[]
@@ -168,160 +28,25 @@ const Map = ({
   const routeItemsMarkersRef = useRef<mapboxgl.Popup[]>([])
   const airportMarkersRef = useRef<mapboxgl.Popup[]>([])
 
-  const buildGeoJsonLine = (coordinates: number[][] | number[]): any => ({
-    type: 'Feature',
-    properties: {},
-    geometry: {
-      type: 'LineString',
-      coordinates,
-    },
-  })
-
-  const showDetailMarkersOnMap = (
-    markersToShowOnMap: AirportDb[],
-    markersRef: React.MutableRefObject<mapboxgl.Popup[]>,
-  ) => {
-    if (!map.current) {
-      return
-    }
-    markersRef.current.forEach(m => m.remove())
-    markersRef.current = []
-
-    const coordinates = routeItems.map(p => p.geometry.coordinates)
-    if (!coordinates.length) {
-      return
-    }
-    const bounds = coordinates.reduce((currentBounds, coord) => currentBounds
-      .extend(coord), new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]))
-    map.current.fitBounds(bounds, { padding: 96 })
-
-    markersToShowOnMap.forEach((routeItem, i) => {
-      const bulletString = getAirportSize(routeItem.longest_runway_length)
-      const markerClassName = i === 0 ? ' map-marker-start' : i === markersToShowOnMap.length - 1 ? ' map-marker-end' : ''
-      const countryTemplate = routeItem.countryCode ? `
-        <div class="map-marker-country">
-          <img width="16px" height="16px" src="/flags/${routeItem.countryCode}.svg" title="${routeItem.countryName}" />${routeItem.countryCode}
-        </div>
-      ` : ''
-      const infoTemplate = `
-        <div class="map-marker-info">
-          <div class="map-marker-info-name">${routeItem.name}</div>
-          <div class="map-marker-info-small">${[routeItem.city, routeItem.countryName].filter(Boolean).join(', ')}</div>
-          <div class="map-marker-info-small">${routeItem.approaches?.join(', ') || ''}</div>
-        </div>
-      `
-      const marker = new mapboxgl.Popup({
-        className: `map-marker${markerClassName}`,
-        closeOnClick: false,
-        closeButton: false,
-        anchor: 'center',
-        maxWidth: 'none',
-      })
-        .setLngLat(routeItem.geometry.coordinates)
-        .setHTML(
-          `<div class="map-marker-content">
-            ${infoTemplate}
-            <div class="map-marker-altitude">${routeItem.altitude}ft</div>
-            <div class="map-marker-ident">${routeItem.ident}</div>
-            <div class="map-marker-size">${bulletString || '<span style="opacity: 0;">E</span>'}</div>
-          <div>
-          ${countryTemplate}
-          `,
-        )
-        .addTo(map.current!)
-
-      marker.getElement().addEventListener('click', () => {
-        const currentMarker = markersToShowOnMap[i].geometry.coordinates
-        const nextMarker = markersToShowOnMap[i === markersToShowOnMap.length - 1 ? i - 1 : i + 1].geometry.coordinates
-        const markersBounds = new mapboxgl.LngLatBounds([currentMarker[0], currentMarker[1]], [nextMarker[0], nextMarker[1]])
-        map.current?.fitBounds(markersBounds, { padding: 96 })
-      })
-
-      markersRef.current.push(marker)
-    })
-  }
-
   // Load small airports markers on map
   useEffect(() => {
-    if (!map.current) {
+    if (!map.current || map.current.getZoom() < MAP_AIRPORTS_ZOOM_LIMIT) {
       return
     }
     airportMarkersRef.current.forEach(m => m.remove())
     airportMarkersRef.current = []
-
-    airports.forEach(airport => {
-      const marker = new mapboxgl.Popup({
-        className: 'map-marker-airport',
-        closeOnClick: false,
-        closeButton: false,
-        anchor: 'center',
-        maxWidth: 'none',
-      })
-        .setLngLat(airport.geometry.coordinates)
-        .setHTML(
-          `<div class="map-marker-airport-content">
-            <div class="map-marker-info">
-              <div class="map-marker-info-name">${airport.ident} - ${airport.name}</div>
-              <div class="map-marker-info-small">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
-              <div class="map-marker-info-small">Runway: ${airport.longest_runway_length}ft, Altitude: ${airport.altitude}ft</div>
-              <div class="map-marker-info-small">${airport.approaches?.join(', ') || ''}</div>
-            </div>
-          <div>
-          `,
-        )
-        .addTo(map.current!)
-
-      airportMarkersRef.current.push(marker)
-    })
+    MapUtils.addAirportsMarkers(map.current, airports, airportMarkersRef.current)
   }, [airports])
 
   // Show route items markers on map
   useEffect(() => {
-    showDetailMarkersOnMap(routeItems, routeItemsMarkersRef)
     if (!map.current) {
       return
     }
-
-    if (routeItems.length < 2) {
-      // @ts-ignore
-      map.current.getSource('path').setData(buildGeoJsonLine([]))
-      return
-    }
-
-    const setOfArcs: [number, number][] = []
-    for (let i = 1; i < routeItems.length; i += 1) {
-      const startArc = routeItems[i - 1].geometry.coordinates
-      const endArc = routeItems[i].geometry.coordinates
-      const geojsonLine = buildGeoJsonLine([startArc, endArc])
-      const steps = 500
-      const lineDistance = turfLength(geojsonLine)
-      const halfwayCoords: any = turfAlong(geojsonLine, lineDistance / 2).geometry.coordinates
-      let bearing = turfBearing(halfwayCoords, endArc)
-      bearing = bearing > 0 ? bearing - 90 : bearing + 90
-      const distance = turfDistance(startArc, endArc) * 0.539957
-
-      const marker = new mapboxgl.Popup({
-        className: 'distance-marker',
-        closeOnClick: false,
-        closeButton: false,
-        anchor: 'center',
-        maxWidth: 'none',
-      })
-        .setLngLat(halfwayCoords)
-        .setHTML(`<div class="distance-marker-content" style="transform: rotate(${bearing}deg);">${distance.toFixed(0)} NM</div>`)
-        .addTo(map.current!)
-
-      routeItemsMarkersRef.current.push(marker)
-
-      for (let j = 0; j < lineDistance + steps; j += lineDistance / steps) {
-        const segment = turfAlong(geojsonLine, j)
-        // @ts-ignore
-        setOfArcs.push(segment.geometry.coordinates)
-      }
-    }
-
-    // @ts-ignore
-    map.current.getSource('path').setData(buildGeoJsonLine(setOfArcs))
+    routeItemsMarkersRef.current.forEach(m => m.remove())
+    routeItemsMarkersRef.current = []
+    MapUtils.addRouteMarkersPath(map.current, routeItems, routeItemsMarkersRef.current)
+    MapUtils.addRouteLinePath(routeItems, map.current!, routeItemsMarkersRef.current)
   }, [routeItems])
 
   useEffect(() => {
@@ -337,23 +62,7 @@ const Map = ({
     mapInstance.touchPitch.disable()
 
     mapInstance.on('load', () => {
-      mapInstance.addSource('path', {
-        type: 'geojson',
-        data: buildGeoJsonLine([]),
-      })
-      mapInstance.addLayer({
-        id: 'path-layer',
-        type: 'line',
-        source: 'path',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#3f51b5',
-          'line-width': 8,
-        },
-      })
+      MapUtils.addLayers(mapInstance)
 
       map.current = mapInstance
 
@@ -361,7 +70,7 @@ const Map = ({
     })
 
     mapInstance.on('moveend', () => {
-      if (mapInstance.getZoom() < 6) {
+      if (mapInstance.getZoom() < MAP_AIRPORTS_ZOOM_LIMIT) {
         airportMarkersRef.current.forEach(m => m.remove())
         airportMarkersRef.current = []
         return
@@ -375,7 +84,7 @@ const Map = ({
   }, [])
   return (
     <>
-      <GlobalStyle />
+      <MapStyle />
       <MapContainer id="mapContainer" />
     </>
   )
