@@ -1,7 +1,8 @@
 import { observer } from 'mobx-react-lite'
 import React, { useEffect } from 'react'
 import styled, { css } from 'styled-components'
-import { Tab, Tabs } from '@material-ui/core'
+import { IconButton, Tab, Tabs } from '@material-ui/core'
+import { Close, Menu } from '@material-ui/icons'
 import useStores from '../stores/useStores'
 import Map from '../modules/Map/Map'
 import RouteConfigForm from '../modules/RouteConfigForm/RouteConfigForm'
@@ -10,10 +11,17 @@ import EditForm from '../modules/EditForm/EditForm'
 import { GeographicalBounds } from '../../models/Geography'
 
 import logoImage from './resources/logo.png'
+import useComponentWillMount from '../utils/useComponentWillMount'
 
 const Wrapper = styled.div`
   padding: 0 16px 16px 16px;
   height: 100%;
+`
+const MenuButtonWrapper = styled.div<{ collapsed: boolean}>`
+  position: absolute;
+  top: 11px;
+  transition: all 250ms ease-in-out;
+  left: ${props => (props.collapsed ? 0 : 276)}px;
 `
 const Header = styled.div`
   font-size: 20px;
@@ -33,12 +41,15 @@ const MapColumn = styled.div`
   margin-left: 16px;
   flex-grow: 1;
 `
-const TabsColumn = styled.div`
+
+const TabsColumn = styled.div<{collapsed: boolean}>`
   display: flex;
   flex-direction: column;
   width: 260px;
   margin-top: -55px;
   height: calc(100% + 55px);
+  transition: all 250ms ease-in-out;
+  ${props => (props.collapsed ? css`margin-left: -276px;` : '')}
 `
 const Logo = styled.img`
   width: 32px;
@@ -46,7 +57,7 @@ const Logo = styled.img`
   margin-right: 8px;
 `
 const Content = styled.div`
-  height: calc(100% - 60px);
+  height: calc(100% - 64px);
   display: flex;
   position: relative;
 `
@@ -64,13 +75,16 @@ const Message = styled.div<{ isError?: boolean }>`
 const HomeContainer = () => {
   const { airportStore } = useStores()
 
+  useComponentWillMount(() => {
+    airportStore.loadUiConfig()
+  })
+
   useEffect(() => {
     airportStore.loadRouteConfig()
-    airportStore.loadUiConfig()
   }, [])
 
   const handleGenerateRoute = async (config: GenerateRouteRequestBody) => {
-    airportStore.saveConfig(config)
+    airportStore.saveRouteConfig(config)
     await airportStore.generateRoute()
   }
 
@@ -110,14 +124,23 @@ const HomeContainer = () => {
     airportStore.saveUiConfig({ ...airportStore.uiConfig, selectedTab: newValue })
   }
 
+  const toggleFormCollapse = () => {
+    airportStore.saveUiConfig({ ...airportStore.uiConfig, isFormCollapsed: !airportStore.uiConfig.isFormCollapsed })
+  }
+
   return (
     <Wrapper>
       <Header>
         <Logo src={logoImage} />
         Airports Random Router&nbsp;<HeaderAuthor>by Sergiu Miclea</HeaderAuthor>
       </Header>
+      <MenuButtonWrapper collapsed={airportStore.uiConfig.isFormCollapsed}>
+        <IconButton onClick={toggleFormCollapse}>
+          {airportStore.uiConfig.isFormCollapsed ? <Menu /> : <Close />}
+        </IconButton>
+      </MenuButtonWrapper>
       <Content>
-        <TabsColumn>
+        <TabsColumn collapsed={airportStore.uiConfig.isFormCollapsed}>
           <Tabs
             value={airportStore.uiConfig.selectedTab}
             onChange={handleTabChange}
@@ -149,6 +172,7 @@ const HomeContainer = () => {
             airports={airportStore.filteredAirports}
             onLoad={handleMapLoad}
             onMapMoveEnd={handleMapMoveEnd}
+            shouldResize={airportStore.uiConfig.isFormCollapsed}
           />
         </MapColumn>
         {airportStore.loadingError ? (

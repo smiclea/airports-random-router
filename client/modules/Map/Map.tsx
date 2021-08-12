@@ -14,6 +14,7 @@ const MAP_AIRPORTS_ZOOM_LIMIT = 0
 type Props = {
   routeItems: AirportDb[]
   airports: AirportDb[]
+  shouldResize: boolean
   onLoad: () => void
   onMapMoveEnd: (bounds: GeographicalBounds) => void,
 }
@@ -21,12 +22,29 @@ type Props = {
 const Map = ({
   routeItems,
   airports,
+  shouldResize,
   onLoad,
   onMapMoveEnd,
 }: Props) => {
   const map = useRef<mapboxgl.Map>()
   const routeItemsMarkersRef = useRef<mapboxgl.Popup[]>([])
   const airportHoverPopupRef = useRef<mapboxgl.Popup | null>()
+  const timeout = useRef<number | null>()
+  const hasResizeDebt = useRef(false)
+
+  useEffect(() => {
+    if (!map.current) {
+      hasResizeDebt.current = true
+      return
+    }
+    if (timeout.current) {
+      clearTimeout(timeout.current)
+      timeout.current = null
+    }
+    timeout.current = setTimeout(() => {
+      map.current!.resize()
+    }, 500)
+  }, [shouldResize])
 
   // Load small airports markers on map
   useEffect(() => {
@@ -77,6 +95,10 @@ const Map = ({
 
       onLoad()
       handleMoveEnd()
+      if (hasResizeDebt.current) {
+        mapInstance.resize()
+        hasResizeDebt.current = false
+      }
     })
 
     mapInstance.on('moveend', () => {

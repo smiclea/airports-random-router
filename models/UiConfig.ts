@@ -5,4 +5,5 @@ export type UiConfig = {
   approachType: ApproachType
   runwayMinLength: number
   showAirports: boolean
+  isFormCollapsed: boolean
 }

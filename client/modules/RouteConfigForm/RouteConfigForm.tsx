@@ -10,6 +10,7 @@ import { UiConfig } from '../../../models/UiConfig'
 
 const Wrapper = styled.form`
   overflow: hidden auto;
+  position: relative;
 `
 const FieldRow = styled.div`
   display: flex;

@@ -43,6 +43,7 @@ class AirportStore {
     approachType: 'all',
     runwayMinLength: 1001,
     showAirports: true,
+    isFormCollapsed: false,
   }
 
   @computed
@@ -85,7 +86,7 @@ class AirportStore {
   }
 
   @action
-  saveConfig(config: GenerateRouteRequestBody) {
+  saveRouteConfig(config: GenerateRouteRequestBody) {
     localStorage.setItem('route-config', JSON.stringify(config))
     this.routeConfig = config
   }
@@ -98,6 +99,7 @@ class AirportStore {
       approachType: storage.approachType || this.uiConfig.approachType,
       runwayMinLength: storage.runwayMinLength || this.uiConfig.runwayMinLength,
       showAirports: storage.showAirports === undefined ? this.uiConfig.showAirports : storage.showAirports,
+      isFormCollapsed: storage.isFormCollapsed === undefined ? this.uiConfig.isFormCollapsed : storage.isFormCollapsed,
     }
   }
 
