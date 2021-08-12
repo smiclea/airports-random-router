@@ -16,6 +16,8 @@ const buildGeoJsonLine = (coordinates: any): any => ({
 })
 
 class MapUtils {
+  static get AIPORTS_LAYER_NAME() { return 'airports-layer' }
+
   static addRouteLinePath(airports: AirportDb[], map: Map, distanceLabelMarkers: mapboxgl.Popup[]) {
     if (airports.length < 2) {
       (map.getSource('path') as any).setData(buildGeoJsonLine([]))
@@ -110,48 +112,39 @@ class MapUtils {
     })
   }
 
-  static addAirportsMarkers(map: Map, airports: AirportDb[], markers: mapboxgl.Popup[]) {
-    airports.forEach(airport => {
-      const marker = new mapboxgl.Popup({
-        className: 'map-marker-airport',
-        closeOnClick: false,
-        closeButton: false,
-        anchor: 'center',
-        maxWidth: 'none',
-      })
-        .setLngLat(airport.geometry.coordinates)
-        .setHTML(
-          `<div class="map-marker-airport-content">
-            <div class="map-marker-info">
-              <div class="map-marker-info-name">${airport.ident} - ${airport.name}</div>
-              <div class="map-marker-info-small">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
-              <div class="map-marker-info-small">Runway: ${airport.longest_runway_length}ft, Altitude: ${airport.altitude}ft</div>
-              <div class="map-marker-info-small">${airport.approaches?.join(', ') || ''}</div>
-            </div>
-          <div>
-          `,
-        )
-        .addTo(map)
-
-      markers.push(marker)
-    })
+  static addAirportsMarkers(map: Map, airports: AirportDb[]) {
+    const geoJson: any = {
+      type: 'FeatureCollection',
+      features: airports.map(airport => ({
+        type: 'Feature',
+        properties: airport,
+        geometry: airport.geometry,
+      })),
+    }
+    const airportsSource: any = map.getSource('airports')
+    airportsSource.setData(geoJson)
   }
 
-  // static addAirportsMarkers(map: Map, airports: AirportDb[]) {
-  //   const geoJson: any = {
-  //     type: 'FeatureCollection',
-  //     features: airports.map(airport => {
-  //       const { geometry, ...properties } = airport
-  //       return {
-  //         type: 'Feature',
-  //         properties,
-  //         geometry,
-  //       }
-  //     }),
-  //   }
-  //   const airportsSource: any = map.getSource('airports')
-  //   airportsSource.setData(geoJson)
-  // }
+  static showAirportHoverPopup(map: Map, airport: AirportDb) {
+    const popup = new mapboxgl.Popup({
+      className: 'map-marker-airport',
+      closeOnClick: false,
+      closeButton: false,
+      anchor: 'center',
+      maxWidth: 'none',
+    })
+      .setLngLat(JSON.parse(airport.geometry as any).coordinates)
+      .setHTML(
+        `<div class="map-marker-info">
+          <div class="map-marker-info-name">${airport.ident} - ${airport.name}</div>
+          <div class="map-marker-info-small">${[airport.city, airport.countryName].filter(Boolean).join(', ')}</div>
+          <div class="map-marker-info-small">Runway: ${airport.longest_runway_length}ft, Altitude: ${airport.altitude}ft</div>
+          <div class="map-marker-info-small">${JSON.parse(airport.approaches as any)?.join(', ') || ''}</div>
+        </div>`,
+      )
+      .addTo(map)
+    return popup
+  }
 
   static addLayers(map: Map) {
     // Route source
@@ -184,14 +177,14 @@ class MapUtils {
       },
     })
     map.addLayer({
-      id: 'airports-layer',
+      id: this.AIPORTS_LAYER_NAME,
       type: 'circle',
       source: 'airports',
       paint: {
-        'circle-color': '#11b4da',
+        'circle-color': '#3f51b5',
         'circle-radius': 4,
         'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff',
+        'circle-stroke-color': 'black',
       },
     })
   }

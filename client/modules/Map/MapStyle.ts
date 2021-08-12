@@ -97,42 +97,29 @@ export default createGlobalStyle`
     }
   }
   .map-marker-airport {
-    :hover {
-      z-index: 999999;
-    }
+    z-index: 99999;
     .mapboxgl-popup-tip {
       display: none;
     }
     .mapboxgl-popup-content {
-      background: #3f51b5;
-      border: 1px solid black;
-      border-radius: 50%;
       padding: 0;
-      .map-marker-airport-content {
-        position: relative;
-        width: 8px;
-        height: 8px;
-        .map-marker-info {
-          display: none;
-          background: #3f51b5;
-          position: absolute;
-          bottom: calc(100% + 8px);
-          padding: 4px 5px;
-          border-radius: 5px;
-          min-width: 130px;
-          white-space: nowrap;
-          left: -62px;
-          line-height: 10px;
-          font-size: 10px;
-          .map-marker-info-small {
-            font-size: 8px;
-            line-height: 8px;
-            padding-top: 4px;
-            opacity: 0.7;
-          }
-        }
-        :hover .map-marker-info {
-          display: block;
+      .map-marker-info {
+        display: block;
+        background: #3f51b5;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        padding: 4px 5px;
+        border-radius: 5px;
+        min-width: 130px;
+        white-space: nowrap;
+        left: -62px;
+        line-height: 10px;
+        font-size: 10px;
+        .map-marker-info-small {
+          font-size: 8px;
+          line-height: 8px;
+          padding-top: 4px;
+          opacity: 0.7;
         }
       }
     }

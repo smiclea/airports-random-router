@@ -26,16 +26,14 @@ const Map = ({
 }: Props) => {
   const map = useRef<mapboxgl.Map>()
   const routeItemsMarkersRef = useRef<mapboxgl.Popup[]>([])
-  const airportMarkersRef = useRef<mapboxgl.Popup[]>([])
+  const airportHoverPopupRef = useRef<mapboxgl.Popup | null>()
 
   // Load small airports markers on map
   useEffect(() => {
     if (!map.current || map.current.getZoom() < MAP_AIRPORTS_ZOOM_LIMIT) {
       return
     }
-    airportMarkersRef.current.forEach(m => m.remove())
-    airportMarkersRef.current = []
-    MapUtils.addAirportsMarkers(map.current, airports, airportMarkersRef.current)
+    MapUtils.addAirportsMarkers(map.current, airports)
   }, [airports])
 
   // Show route items markers on map
@@ -71,8 +69,7 @@ const Map = ({
 
     mapInstance.on('moveend', () => {
       if (mapInstance.getZoom() < MAP_AIRPORTS_ZOOM_LIMIT) {
-        airportMarkersRef.current.forEach(m => m.remove())
-        airportMarkersRef.current = []
+        MapUtils.addAirportsMarkers(mapInstance, [])
         return
       }
 
@@ -80,6 +77,27 @@ const Map = ({
       const sw = bounds.getSouthWest()
       const ne = bounds.getNorthEast()
       onMapMoveEnd({ sw: [sw.lng, sw.lat], ne: [ne.lng, ne.lat] })
+    })
+
+    mapInstance.on('mouseenter', MapUtils.AIPORTS_LAYER_NAME, () => {
+      mapInstance!.getCanvas().style.cursor = 'default'
+    })
+    mapInstance.on('mouseleave', MapUtils.AIPORTS_LAYER_NAME, () => {
+      mapInstance!.getCanvas().style.cursor = ''
+      if (airportHoverPopupRef.current) {
+        airportHoverPopupRef.current.remove()
+        airportHoverPopupRef.current = null
+      }
+    })
+    mapInstance.on('mouseover', MapUtils.AIPORTS_LAYER_NAME, e => {
+      if (!e.features) {
+        return
+      }
+      if (airportHoverPopupRef.current) {
+        airportHoverPopupRef.current.remove()
+        airportHoverPopupRef.current = null
+      }
+      airportHoverPopupRef.current = MapUtils.showAirportHoverPopup(mapInstance, e.features[0].properties as any)
     })
   }, [])
   return (
