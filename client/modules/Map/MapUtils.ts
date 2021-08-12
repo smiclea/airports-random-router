@@ -16,7 +16,9 @@ const buildGeoJsonLine = (coordinates: any): any => ({
 })
 
 class MapUtils {
-  static get AIPORTS_LAYER_NAME() { return 'airports-layer' }
+  static get AIPORTS_UNCLUSTERED_LAYER_NAME() { return 'unclustered-airports-layer' }
+
+  static get AIPORTS_CLUSTER_LAYER_NAME() { return 'cluster-airports-layer' }
 
   static addRouteLinePath(airports: AirportDb[], map: Map, distanceLabelMarkers: mapboxgl.Popup[]) {
     if (airports.length < 2) {
@@ -113,7 +115,7 @@ class MapUtils {
     })
   }
 
-  static addAirportsMarkers(map: Map, airports: AirportDb[]) {
+  static setAirportsSource(map: Map, airports: AirportDb[]) {
     const geoJson: any = {
       type: 'FeatureCollection',
       features: airports,
@@ -145,6 +147,85 @@ class MapUtils {
   }
 
   static addLayers(map: Map) {
+    // Airports source
+    map.addSource('airports', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'Point',
+            coordinates: [],
+          },
+        }],
+      },
+      cluster: true,
+      clusterMaxZoom: 14,
+      clusterRadius: 50,
+    })
+
+    map.addLayer({
+      id: this.AIPORTS_CLUSTER_LAYER_NAME,
+      type: 'circle',
+      source: 'airports',
+      filter: ['has', 'point_count'],
+      paint: {
+        // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+        // with three steps to implement three types of circles:
+        //   * Blue, 20px circles when point count is less than 5
+        //   * Yellow, 30px circles when point count is between 5 and 10
+        //   * Pink, 40px circles when point count is greater than or equal to 10
+        'circle-color': [
+          'step',
+          ['get', 'point_count'],
+          '#6571b4',
+          5,
+          '#6571b4',
+          10,
+          '#6571b4',
+        ],
+        'circle-radius': [
+          'step',
+          ['get', 'point_count'],
+          10,
+          5,
+          15,
+          10,
+          20,
+        ],
+      },
+    })
+
+    map.addLayer({
+      id: 'cluster-count-layer',
+      type: 'symbol',
+      source: 'airports',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': '{point_count_abbreviated}',
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 12,
+      },
+      paint: {
+        'text-color': 'white',
+      },
+    })
+
+    map.addLayer({
+      id: this.AIPORTS_UNCLUSTERED_LAYER_NAME,
+      type: 'circle',
+      source: 'airports',
+      filter: ['!', ['has', 'point_count']],
+      paint: {
+        'circle-color': '#f50057',
+        'circle-radius': 4,
+        'circle-stroke-width': 1,
+        'circle-stroke-color': 'black',
+      },
+    })
+
     // Route source
     map.addSource('path', { type: 'geojson', data: buildGeoJsonLine([]) })
 
@@ -159,30 +240,6 @@ class MapUtils {
       paint: {
         'line-color': '#3f51b5',
         'line-width': 8,
-      },
-    })
-
-    // Airports source
-    map.addSource('airports', {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Point',
-          coordinates: [],
-        },
-      },
-    })
-    map.addLayer({
-      id: this.AIPORTS_LAYER_NAME,
-      type: 'circle',
-      source: 'airports',
-      paint: {
-        'circle-color': '#3f51b5',
-        'circle-radius': 4,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': 'black',
       },
     })
   }

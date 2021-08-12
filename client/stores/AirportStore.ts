@@ -42,10 +42,15 @@ class AirportStore {
     selectedTab: 0,
     approachType: 'all',
     runwayMinLength: 1001,
+    showAirports: true,
   }
 
   @computed
   get filteredAirports() {
+    if (!this.uiConfig.showAirports) {
+      return []
+    }
+
     const filterByApproach = (airport: AirportDb) => {
       if (this.uiConfig.approachType === 'ils') {
         return airport.properties.approaches ? airport.properties.approaches.indexOf('ILS') > -1 : false
@@ -92,6 +97,7 @@ class AirportStore {
       selectedTab: storage.selectedTab || this.uiConfig.selectedTab,
       approachType: storage.approachType || this.uiConfig.approachType,
       runwayMinLength: storage.runwayMinLength || this.uiConfig.runwayMinLength,
+      showAirports: storage.showAirports === undefined ? this.uiConfig.showAirports : storage.showAirports,
     }
   }
 

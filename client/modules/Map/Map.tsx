@@ -10,7 +10,7 @@ import MapUtils from './MapUtils'
 const MapContainer = styled.div`
   height: 100%;
 `
-const MAP_AIRPORTS_ZOOM_LIMIT = 6
+const MAP_AIRPORTS_ZOOM_LIMIT = 0
 type Props = {
   routeItems: AirportDb[]
   airports: AirportDb[]
@@ -33,7 +33,7 @@ const Map = ({
     if (!map.current || map.current.getZoom() < MAP_AIRPORTS_ZOOM_LIMIT) {
       return
     }
-    MapUtils.addAirportsMarkers(map.current, airports)
+    MapUtils.setAirportsSource(map.current, airports)
   }, [airports])
 
   // Show route items markers on map
@@ -59,17 +59,9 @@ const Map = ({
     mapInstance.touchZoomRotate.disableRotation()
     mapInstance.touchPitch.disable()
 
-    mapInstance.on('load', () => {
-      MapUtils.addLayers(mapInstance)
-
-      map.current = mapInstance
-
-      onLoad()
-    })
-
-    mapInstance.on('moveend', () => {
+    const handleMoveEnd = () => {
       if (mapInstance.getZoom() < MAP_AIRPORTS_ZOOM_LIMIT) {
-        MapUtils.addAirportsMarkers(mapInstance, [])
+        MapUtils.setAirportsSource(mapInstance, [])
         return
       }
 
@@ -77,19 +69,57 @@ const Map = ({
       const sw = bounds.getSouthWest()
       const ne = bounds.getNorthEast()
       onMapMoveEnd({ sw: [sw.lng, sw.lat], ne: [ne.lng, ne.lat] })
+    }
+    mapInstance.on('load', () => {
+      MapUtils.addLayers(mapInstance)
+
+      map.current = mapInstance
+
+      onLoad()
+      handleMoveEnd()
     })
 
-    mapInstance.on('mouseenter', MapUtils.AIPORTS_LAYER_NAME, () => {
+    mapInstance.on('moveend', () => {
+      handleMoveEnd()
+    })
+
+    mapInstance.on('mouseenter', MapUtils.AIPORTS_CLUSTER_LAYER_NAME, () => {
+      mapInstance!.getCanvas().style.cursor = 'pointer'
+    })
+    mapInstance.on('mouseleave', MapUtils.AIPORTS_CLUSTER_LAYER_NAME, () => {
+      mapInstance!.getCanvas().style.cursor = ''
+    })
+    mapInstance.on('mouseenter', MapUtils.AIPORTS_UNCLUSTERED_LAYER_NAME, () => {
       mapInstance!.getCanvas().style.cursor = 'default'
     })
-    mapInstance.on('mouseleave', MapUtils.AIPORTS_LAYER_NAME, () => {
+    mapInstance.on('mouseleave', MapUtils.AIPORTS_UNCLUSTERED_LAYER_NAME, () => {
       mapInstance!.getCanvas().style.cursor = ''
       if (airportHoverPopupRef.current) {
         airportHoverPopupRef.current.remove()
         airportHoverPopupRef.current = null
       }
     })
-    mapInstance.on('mouseover', MapUtils.AIPORTS_LAYER_NAME, e => {
+    mapInstance.on('click', MapUtils.AIPORTS_CLUSTER_LAYER_NAME, e => {
+      const feature: any = e.features?.[0]
+      if (!feature) {
+        return
+      }
+      const clusterId = feature.properties.cluster_id
+      const source = mapInstance.getSource('airports') as any
+      source.getClusterExpansionZoom(
+        clusterId,
+        (error: any, zoom: any) => {
+          if (error) {
+            return
+          }
+          mapInstance.easeTo({
+            center: feature.geometry.coordinates,
+            zoom,
+          })
+        },
+      )
+    })
+    mapInstance.on('mouseover', MapUtils.AIPORTS_UNCLUSTERED_LAYER_NAME, e => {
       if (!e.features) {
         return
       }
@@ -97,7 +127,10 @@ const Map = ({
         airportHoverPopupRef.current.remove()
         airportHoverPopupRef.current = null
       }
-      airportHoverPopupRef.current = MapUtils.showAirportHoverPopup(mapInstance, e.lngLat, e.features[0].properties as any)
+      airportHoverPopupRef.current = MapUtils.showAirportHoverPopup(
+        mapInstance,
+        (e.features[0].geometry as any).coordinates, e.features[0].properties as any,
+      )
     })
   }, [])
   return (

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import {
   Button, FormLabel, MenuItem, TextField,
-  RadioGroup, FormControlLabel, Radio,
+  RadioGroup, FormControlLabel, Radio, Checkbox,
 } from '@material-ui/core'
 import { ApproachType, GenerateRouteRequestBody } from '../../../models/Airport'
 import { getAirportSize } from '../../stores/AirportStore'
@@ -80,6 +80,7 @@ type Props = {
   onApproachTypeChange: (type: ApproachType) => void
   onRunwayMinLengthChange: (length: number) => void
   onGenerateClick: (config: GenerateRouteRequestBody) => void
+  onShowAirportsChange: (show: boolean) => void
 }
 
 const RouteConfigForm = ({
@@ -87,6 +88,7 @@ const RouteConfigForm = ({
   uiConfig,
   onApproachTypeChange,
   onRunwayMinLengthChange,
+  onShowAirportsChange,
   onGenerateClick,
 }: Props) => {
   const [startAirport, setStartAirport] = useState('')
@@ -164,6 +166,14 @@ const RouteConfigForm = ({
               label="Doesn't matter"
             />
           </RadioGroup>
+        </FieldInputWrapper>
+      </FieldRow>
+      <FieldRow>
+        <FieldInputWrapper>
+          <FormControlLabel
+            control={<Checkbox checked={uiConfig.showAirports} onChange={(_, checked) => { onShowAirportsChange(checked) }} />}
+            label="Show all airports"
+          />
         </FieldInputWrapper>
       </FieldRow>
       <FieldRow>
