@@ -1,0 +1,7 @@
+.headers on
+
+.mode csv
+
+.output ./server/buildDatabase/approaches.csv
+
+SELECT airport_id, type FROM approach GROUP BY airport_id, type;

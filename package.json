@@ -9,6 +9,7 @@
     "server-dev": "nodemon -e ts,js --ignore client ./server/index",
     "server-debug": "node --inspect ./server/index",
     "transform-airports": "node ./server/index transform-airports",
+    "build-database": "node ./server/index build-database",
     "tsc": "npx tsc --skipLibCheck",
     "eslint": "npx eslint -c .eslintrc \"server/**\" \"client/**\" \"common/**\""
   },

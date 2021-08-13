@@ -6,8 +6,14 @@ import cookieParser from 'cookie-parser'
 import router from './router'
 import env from './env'
 import db from './api/db'
+import buildDatabase from './buildDatabase/buildDatabase'
 
 export default async () => {
+  if (process.argv[2] === 'build-database') {
+    await buildDatabase()
+    return
+  }
+
   const app = express()
 
   app.use(bodyParser.json())

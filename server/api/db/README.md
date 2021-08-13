@@ -1,4 +1,6 @@
-# Update the airports DB from Navigraph
+# Manually update the airports DB from Little Navmap
+
+Read [this](../../buildDatabase/README.md) for automatic update.
 
 ## Prepare SQL Lite DB
 
@@ -51,8 +53,6 @@ SELECT airport_id, type FROM approach GROUP BY airport_id, type;
 ```
 
 * Copy 'approaches.csv'
-
-* Drop the old 'approaches' collection
 
 * Run: `./mongoimport.exe --uri mongodb+srv://smiclea:<PASSWORD>@cluster0.uijew.mongodb.net/airports --collection approaches --type csv --headerline --file approaches.csv`
 

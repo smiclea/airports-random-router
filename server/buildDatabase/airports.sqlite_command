@@ -1,0 +1,7 @@
+.headers on
+
+.mode csv
+
+.output ./server/buildDatabase/airports.csv
+
+SELECT airport_id, ident, name, city, lonx, laty, altitude, longest_runway_length FROM airport;
