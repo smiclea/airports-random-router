@@ -139,6 +139,9 @@ class AirportStore {
         this.allAirports = airports
       })
     } catch (err) {
+      if (err.type === 'CANCELED') {
+        return
+      }
       this.loadingError = `${err.type}: ${err.error.response.data.error}`
     }
   }

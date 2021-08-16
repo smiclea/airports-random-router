@@ -26,6 +26,7 @@ class ApiCaller {
         throw { type: 'NO_RESPONSE', error: err }
       }
       if (axios.isCancel(err)) {
+        console.log('CANCELED:', requestConfig.method || 'GET', requestConfig.url)
         throw { type: 'CANCELED' }
       }
       throw { type: 'SETUP_ERROR' }
