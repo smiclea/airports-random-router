@@ -8,8 +8,15 @@ const airportApi = (router: Router) => {
   router.route('/airports')
     .get(async (req, res) => {
       const { codes } = req.query
-      if (!codes) {
+      if (codes === undefined) {
         res.status(500).json({ error: '\'codes\' parameter missing!' })
+        return
+      }
+      if (!codes) {
+        res.json({
+          foundAirports: [],
+          notFoundAirports: [],
+        })
         return
       }
 
@@ -94,7 +101,7 @@ const airportApi = (router: Router) => {
           approachType,
         }))
       } catch (err) {
-        handleError('Route Generator error', err, res)
+        handleError('Route Generator error', err as any, res)
       }
     })
 }

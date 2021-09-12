@@ -128,6 +128,7 @@ class AirportStore {
     }
     const cancelTokenSource = axios.CancelToken.source()
     this.airportsCancelable = cancelTokenSource
+    this.loading = true
     try {
       const airports: AirportDb[] = await apiCaller.send({
         url: '/api/airports/bounds',
@@ -137,11 +138,16 @@ class AirportStore {
       })
       runInAction(() => {
         this.allAirports = airports
+        this.loading = false
       })
-    } catch (err) {
+    } catch (error) {
+      const err: any = error
       if (err.type === 'CANCELED') {
         return
       }
+      runInAction(() => {
+        this.loading = false
+      })
       this.loadingError = `${err.type}: ${err.error.response.data.error}`
     }
   }
@@ -170,7 +176,8 @@ class AirportStore {
         this.saveRouteItems()
       })
     } catch (err) {
-      this.loadingError = `${err.type}: ${err.error.response.data.error}`
+      const error: any = err
+      this.loadingError = `${error.type}: ${error.error.response.data.error}`
     } finally {
       runInAction(() => {
         this.loading = false
@@ -203,7 +210,8 @@ class AirportStore {
           this.loadingError = `The following airports couldn't be found: ${response.notFoundAirports.join(', ')}`
         }
       })
-    } catch (err) {
+    } catch (error) {
+      const err: any = error
       this.loadingError = `${err.type}: ${err.error.response.data.error}`
     } finally {
       runInAction(() => {
