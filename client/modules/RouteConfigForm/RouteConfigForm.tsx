@@ -82,6 +82,7 @@ type Props = {
   onRunwayMinLengthChange: (length: number) => void
   onGenerateClick: (config: GenerateRouteRequestBody) => void
   onShowAirportsChange: (show: boolean) => void
+  onIncludeMilitaryChange: (include: boolean) => void
 }
 
 const RouteConfigForm = ({
@@ -91,6 +92,7 @@ const RouteConfigForm = ({
   onRunwayMinLengthChange,
   onShowAirportsChange,
   onGenerateClick,
+  onIncludeMilitaryChange,
 }: Props) => {
   const [startAirport, setStartAirport] = useState('')
   const [endAirport, setEndAirport] = useState('')
@@ -172,8 +174,16 @@ const RouteConfigForm = ({
       <FieldRow>
         <FieldInputWrapper>
           <FormControlLabel
+            control={<Checkbox checked={uiConfig.includeMilitary} onChange={(_, checked) => { onIncludeMilitaryChange(checked) }} />}
+            label="Include military"
+          />
+        </FieldInputWrapper>
+      </FieldRow>
+      <FieldRow>
+        <FieldInputWrapper>
+          <FormControlLabel
             control={<Checkbox checked={uiConfig.showAirports} onChange={(_, checked) => { onShowAirportsChange(checked) }} />}
-            label="Show all airports"
+            label="Show on map"
           />
         </FieldInputWrapper>
       </FieldRow>

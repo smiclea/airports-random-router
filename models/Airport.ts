@@ -10,6 +10,7 @@ export type AirportDb = {
     countryCode: string | null
     countryName: string
     approaches: string[] | null
+    is_military: 0 | 1
   },
   geometry: {
     type: 'Point'

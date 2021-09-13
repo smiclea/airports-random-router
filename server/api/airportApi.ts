@@ -52,10 +52,14 @@ const airportApi = (router: Router) => {
   router.route('/airports/generate-random-route')
     .post(async (req, res) => {
       const {
-        from, to, minDistance, maxDistance, runwayMinLength, angle, approachType,
+        from, to, minDistance, maxDistance, runwayMinLength, angle, approachType, includeMilitary,
       } = req.body
       if (!from || !to || !Number(minDistance) || !Number(maxDistance) || !Number(runwayMinLength) || angle === undefined || !approachType) {
         res.status(500).json({ error: 'Invalid request body!' })
+        return
+      }
+      if (typeof includeMilitary !== 'boolean') {
+        res.status(500).json({ error: '`includeMilitary` is invalid!' })
         return
       }
       if (Number(minDistance) < 5) {
@@ -72,19 +76,13 @@ const airportApi = (router: Router) => {
         return
       }
 
-      const fromAirport = (
-        await db.getAirportByIdent(String(from).toUpperCase())
-        || (await db.getAirportsByText(from))[0]
-      )
+      const fromAirport = (await db.getAirportByIdent(String(from).toUpperCase()) || (await db.getAirportsByText(from))[0])
       if (!fromAirport) {
         res.status(500).json({ error: `'${from}' airport not found` })
         return
       }
 
-      const toAirport = (
-        await db.getAirportByIdent(String(to).toUpperCase())
-        || (await db.getAirportsByText(to))[0]
-      )
+      const toAirport = (await db.getAirportByIdent(String(to).toUpperCase()) || (await db.getAirportsByText(to))[0])
       if (!toAirport) {
         res.status(500).json({ error: `'${to}' airport not found` })
         return
@@ -99,6 +97,7 @@ const airportApi = (router: Router) => {
           runwayMinLength: Number(runwayMinLength),
           angle: Number(angle),
           approachType,
+          includeMilitary,
         }))
       } catch (err) {
         handleError('Route Generator error', err as any, res)

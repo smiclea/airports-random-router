@@ -6,4 +6,5 @@ export type UiConfig = {
   runwayMinLength: number
   showAirports: boolean
   isFormCollapsed: boolean
+  includeMilitary: boolean
 }

@@ -99,6 +99,9 @@ const HomeContainer = () => {
   const handleShowAirportsChange = (showAirports: boolean) => {
     airportStore.saveUiConfig({ ...airportStore.uiConfig, showAirports })
   }
+  const handleIncludeMilitaryChange = (includeMilitary: boolean) => {
+    airportStore.saveUiConfig({ ...airportStore.uiConfig, includeMilitary })
+  }
 
   const handleMapLoad = () => {
     airportStore.loadRouteItems()
@@ -158,6 +161,7 @@ const HomeContainer = () => {
               onApproachTypeChange={handleApproachTypeChange}
               onRunwayMinLengthChange={handleRunwayMinLengthChange}
               onShowAirportsChange={handleShowAirportsChange}
+              onIncludeMilitaryChange={handleIncludeMilitaryChange}
             />
           ) : (
             <EditForm

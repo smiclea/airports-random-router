@@ -1,6 +1,6 @@
 # Update the airports DB from Little Navmap
 
-## 1. Create the airports and approaches collection fron Little Navmap
+## 1. Create the airports and approaches collection from Little Navmap
 
 Set the Little Navmap DB path
 

@@ -44,6 +44,7 @@ class AirportStore {
     runwayMinLength: 1001,
     showAirports: true,
     isFormCollapsed: false,
+    includeMilitary: false,
   }
 
   @computed
@@ -62,8 +63,18 @@ class AirportStore {
       return true
     }
 
+    const filterIncludeMilitary = (airport: AirportDb) => {
+      if (this.uiConfig.includeMilitary) {
+        return true
+      }
+      return airport.properties.is_military === 0
+    }
+
     return this.allAirports.filter(a => {
       if (!filterByApproach(a)) {
+        return false
+      }
+      if (!filterIncludeMilitary(a)) {
         return false
       }
       return a.properties.longest_runway_length >= this.uiConfig.runwayMinLength
@@ -100,6 +111,7 @@ class AirportStore {
       runwayMinLength: storage.runwayMinLength || this.uiConfig.runwayMinLength,
       showAirports: storage.showAirports === undefined ? this.uiConfig.showAirports : storage.showAirports,
       isFormCollapsed: storage.isFormCollapsed === undefined ? this.uiConfig.isFormCollapsed : storage.isFormCollapsed,
+      includeMilitary: storage.includeMilitary === undefined ? this.uiConfig.includeMilitary : storage.includeMilitary,
     }
   }
 
@@ -169,6 +181,7 @@ class AirportStore {
           runwayMinLength: this.uiConfig.runwayMinLength,
           angle: this.routeConfig.angle,
           approachType: this.uiConfig.approachType,
+          includeMilitary: this.uiConfig.includeMilitary,
         },
       })
       runInAction(() => {

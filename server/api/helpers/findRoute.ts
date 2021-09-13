@@ -14,6 +14,7 @@ export default async (config: {
   runwayMinLength: number,
   angle: number,
   approachType: ApproachType
+  includeMilitary: boolean
 }) => {
   const currentRoute: AirportDb[] = []
 
@@ -39,6 +40,7 @@ export default async (config: {
         actualMaxDistance,
         config.runwayMinLength,
         config.approachType,
+        config.includeMilitary,
       )
       const foundRouteBearing = turfBearing(foundRoute.geometry.coordinates, config.toAirport.geometry.coordinates)
       const minBearing = foundRouteBearing - config.angle

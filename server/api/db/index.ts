@@ -131,7 +131,9 @@ class DbManager {
     minDistance: number, maxDistance: number,
     minRunwayLength: number,
     approachType: ApproachType,
+    includeMilitary: boolean,
   ) {
+    const includeMilitaryQuery = includeMilitary ? {} : { 'properties.is_military': 0 }
     const airports = await this.airportsCollection.find({
       $and: [
         {
@@ -152,6 +154,7 @@ class DbManager {
         {
           'properties.longest_runway_length': { $gte: minRunwayLength },
         },
+        includeMilitaryQuery,
       ],
     }).toArray()
 
