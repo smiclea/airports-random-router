@@ -15,5 +15,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "debug.javascript.autoAttachFilter": "always",
+  "debug.javascript.autoAttachFilter": "smart",
 }
