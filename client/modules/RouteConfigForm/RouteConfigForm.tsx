@@ -31,11 +31,11 @@ const FieldInputWrapper = styled.div`
 const AIRPORT_SIZES = [
   {
     label: `> 10000ft ${getAirportSize(10001)}`,
-    value: 10001,
+    value: 10000,
   },
   {
     label: `> 9000ft ${getAirportSize(9001)}`,
-    value: 9001,
+    value: 9000,
   },
   {
     label: `> 8000ft ${getAirportSize(8001)}`,
@@ -43,31 +43,31 @@ const AIRPORT_SIZES = [
   },
   {
     label: `> 7000ft ${getAirportSize(7001)}`,
-    value: 7001,
+    value: 7000,
   },
   {
     label: `> 6000ft ${getAirportSize(6001)}`,
-    value: 6001,
+    value: 6000,
   },
   {
     label: `> 5000ft ${getAirportSize(5001)}`,
-    value: 5001,
+    value: 5000,
   },
   {
     label: `> 4000ft ${getAirportSize(4001)}`,
-    value: 4001,
+    value: 4000,
   },
   {
     label: `> 3000ft ${getAirportSize(3001)}`,
-    value: 3001,
+    value: 3000,
   },
   {
     label: `> 2000ft ${getAirportSize(2001)}`,
-    value: 2001,
+    value: 2000,
   },
   {
     label: `> 1000ft ${getAirportSize(1001)}`,
-    value: 1001,
+    value: 1000,
   },
   {
     label: '> 0ft',
