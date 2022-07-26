@@ -3,13 +3,13 @@
 # Run this command after repo checkout to enable git hooks
 # git config core.hooksPath .githooks
 
-printf "\nRunning TSC:\n"
+# printf "\nRunning TSC:\n"
 
-yarn tsc
+# yarn tsc
 
-if [[ "$?" == 0 ]]; then
-  printf "\t\033[32mTSC Passed \e[0m"
-else
-  printf "\t\033[41mTSC Failed \e[0m"
-  exit 1
-fi
+# if [[ "$?" == 0 ]]; then
+#   printf "\t\033[32mTSC Passed \e[0m"
+# else
+#   printf "\t\033[41mTSC Failed \e[0m"
+#   exit 1
+# fi
