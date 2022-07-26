@@ -52,7 +52,14 @@ const airportApi = (router: Router) => {
   router.route('/airports/generate-random-route')
     .post(async (req, res) => {
       const {
-        from, to, minDistance, maxDistance, runwayMinLength, angle, approachType, includeMilitary,
+        from,
+        to,
+        minDistance,
+        maxDistance,
+        runwayMinLength,
+        angle,
+        approachType,
+        includeMilitary,
       } = req.body
       if (!from || !to || !Number(minDistance) || !Number(maxDistance) || !Number(runwayMinLength) || angle === undefined || !approachType) {
         res.status(500).json({ error: 'Invalid request body!' })
